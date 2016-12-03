@@ -1,0 +1,2 @@
+class Auto < Vehicle
+end

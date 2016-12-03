@@ -1,0 +1,11 @@
+require 'pry'
+require 'nokogiri'
+require 'open-uri'
+
+require_relative '../lib/cli.rb'
+require_relative '../lib/item.rb'
+require_relative '../lib/listing.rb'
+require_relative '../lib/scraper.rb'
+require_relative '../lib/seller.rb'
+require_relative '../lib/vehicle.rb'
+require_relative '../lib/automobile.rb'
