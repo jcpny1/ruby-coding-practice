@@ -30,12 +30,13 @@ class Listing
     item.price
   end
 
-  def print_detail
+  def detail
+    summary
   end
 
-  def print_summary
+  def summary
 #replace with printf style format?
-    puts "#{title.ljust(30)} #{mileage.rjust(7)}\t#{seller_name.ljust(30)}\t#{seller_location.ljust(30)}\t#{price.rjust(8)}\t#{start_date}"
+    "#{title.ljust(30)} #{mileage.rjust(7)} #{seller_name.ljust(30)} #{seller_location.ljust(30)} #{price.rjust(8)} #{start_date}"
 #    puts @seller.phone + '    ' + @id
   end
 

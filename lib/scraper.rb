@@ -18,10 +18,10 @@ class Scraper
 
       detail_link = get_detail_link(url, auto_result)
       condition = get_condition(detail_link)
-
-#      detail_doc = Nokogiri::HTML(open(detail_description_link))
-#      detail_description = get_details_description(detail_doc)
-
+      # detail_doc = Nokogiri::HTML(open(detail_link, :read_timeout=>10))
+      # detail_cells = get_detail_cells(detail_doc)
+      # detail_values = {}
+      # get_detail_values(detail_cells, detail_values)
       contact_div = auto_result.css('.contactLinks')
       seller_name = get_seller_name(contact_div)
       seller_location = get_seller_location(contact_div)
@@ -33,6 +33,20 @@ class Scraper
     }
 
     listings
+  end
+
+  def get_detail_values(detail_cells, detail_values)
+    index = 0
+    while index < detail_cells.size
+      attribute = detail_cells[index].text.chomp(':')
+      value = detail_cells[index+1].text
+      detail_values[attribute] = value
+      index += 2
+    end
+  end
+
+  def get_detail_cells(detail_doc)
+    detail_doc.css('.aiDetailAdDetails td')
   end
 
   def get_condition(detail_link)
@@ -54,10 +68,6 @@ class Scraper
   def get_detail_link(url, auto_result)
     url_parts = url.split('/')
     url_parts[0] + '//' + url_parts[2] + auto_result.css('.aiResultTitle h3 a')[0]['href']
-  end
-
-  def get_details_description(detail_doc)
-    detail_doc.css('.aiDetailsDescription').children[2].text.strip
   end
 
   def get_listing_id(auto_result)
