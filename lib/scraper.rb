@@ -31,7 +31,7 @@ class Scraper
     listings
   end
 
-  def self.get_auto_listing_details(detail_link, detail_values)
+  def self.get_detail_values(detail_link, detail_values)
     detail_doc = Nokogiri::HTML(open(detail_link, :read_timeout=>10))
     detail_values['Description'] = detail_doc.css('.aiDetailsDescription')[0].children[2].text.strip
     detail_cells = get_detail_cells(detail_doc)

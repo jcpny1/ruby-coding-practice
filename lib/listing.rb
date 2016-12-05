@@ -34,12 +34,32 @@ class Listing
     item.price
   end
 
+  ATTRIBUTE_RJUST = 14
+
   def print_detail
-    if item.detail_values.size == 0
-      Scraper.get_auto_listing_details(detail_link, item.detail_values)
-    end
-    puts "\n", summary
-    item.detail_values.each { |attribute, value| puts "  #{attribute.ljust(12)}: #{value}" }
+    Scraper.get_detail_values(detail_link, item.detail_values) if item.detail_values.empty?
+    puts '', summary
+    item.detail_values.each { |attribute, value| puts "#{attribute.ljust(12).rjust(ATTRIBUTE_RJUST)}: #{format(value)}" }
+  end
+
+  VALUE_RJUST =  ATTRIBUTE_RJUST + 2
+  MAX_LINE_LENGTH = 100
+  NEW_DETAIL_LINE = "\n" + (' ' * VALUE_RJUST)
+
+  def format(string)
+    return string if string.size <= MAX_LINE_LENGTH
+    new_string = ''
+    line_len = 0
+    string.split(' ').each { |word|
+      if (line_len += word.size + 1) > MAX_LINE_LENGTH
+        if line_len > (MAX_LINE_LENGTH + 2)  # allow a word to extend over MAX_LINE_LENGTH a bit.
+          new_string += NEW_DETAIL_LINE
+          line_len = 0
+        end
+      end
+      new_string += "#{word} "
+    }
+    new_string
   end
 
   def summary
