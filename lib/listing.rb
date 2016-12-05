@@ -22,6 +22,10 @@ class Listing
     item.description
   end
 
+  def detail_link
+    item.detail_link
+  end
+
   def mileage
     item.is_a?(Automobile) ? item.mileage : 0
   end
@@ -30,8 +34,12 @@ class Listing
     item.price
   end
 
-  def detail
-    summary
+  def print_detail
+    if item.detail_values.size == 0
+      Scraper.get_auto_listing_details(detail_link, item.detail_values)
+    end
+    puts "\n", summary
+    item.detail_values.each { |attribute, value| puts "  #{attribute.ljust(12)}: #{value}" }
   end
 
   def summary
@@ -61,5 +69,4 @@ class Listing
   def title
     item.title
   end
-
 end
