@@ -31,29 +31,36 @@ class Scraper
     listings
   end
 
-  def self.get_detail_values(detail_link, detail_values)
+  def self.get_detail_values(detail_link, detail_values, condition, phone)
     detail_doc = Nokogiri::HTML(open(detail_link, :read_timeout=>10))
-    detail_values['Description'] = detail_doc.css('.aiDetailsDescription')[0].children[2].text.strip
+    detail_values['Description'.to_sym] = detail_doc.css('.aiDetailsDescription')[0].children[2].text.strip
+    detail_values['Condition'.to_sym] = condition
+    detail_values['Certified'.to_sym] = ''
+    detail_values['Phone'.to_sym] = phone
     detail_cells = get_detail_cells(detail_doc)
     index = 0
     while index < detail_cells.size
-      attribute = detail_cells[index].text.chomp(':')
-      value = detail_cells[index+1].text
-      detail_values[attribute] = value
-      index += 2
+      if "\u00A0" == detail_cells[index].text  && 'aiCPOiconDetail' == detail_cells[index].children[0].attributes['class'].content   # logic break - icon attribute instead of attr/val pair.
+        detail_values['Certified'.to_sym] = 'Yes'
+        index += 1
+      else
+        attribute = detail_cells[index].text.chomp(':')
+        value = detail_cells[index+1].text
+        detail_values[attribute.to_sym] = value
+        index += 2
+      end
     end
-#binding.pry
   end
 
   def self.get_condition(detail_link)
     if detail_link.include?('-used-')
-      'sub(/Details/).used'
+      'Used'
     elsif detail_link.include?('-new-')
-      'new'
+      'New'
     elsif detail_link.include?('-certified-')
-      'certified'
+      'Certified Pre-Owned'
     else
-      'unknown'
+      ''
     end
   end
 

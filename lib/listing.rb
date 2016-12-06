@@ -36,17 +36,17 @@ class Listing
 
   ATTRIBUTE_RJUST = 14
 
-  def print_detail
-    Scraper.get_detail_values(detail_link, item.detail_values) if item.detail_values.empty?
-    puts '', summary
-    item.detail_values.each { |attribute, value| puts "#{attribute.ljust(12).rjust(ATTRIBUTE_RJUST)}: #{format(value)}" }
+  def print_detail(item_number)
+    Scraper.get_detail_values(detail_link, item.detail_values, item.condition, seller.phone) if item.detail_values.empty?
+    puts '', summary(item_number)
+    item.detail_values.each { |attribute, value| puts "#{attribute.to_s.ljust(12).rjust(ATTRIBUTE_RJUST)}: #{format_value(value)}" }
   end
 
   VALUE_RJUST =  ATTRIBUTE_RJUST + 2
   MAX_LINE_LENGTH = 100
   NEW_DETAIL_LINE = "\n" + (' ' * VALUE_RJUST)
 
-  def format(string)
+  def format_value(string)
     return string if string.size <= MAX_LINE_LENGTH
     new_string = ''
     line_len = 0
@@ -62,10 +62,24 @@ class Listing
     new_string
   end
 
-  def summary
+  #keep #summary and #summary_header in sync
+  def summary(item_number)
 #replace with printf style format?
-    "#{title.ljust(30)} #{mileage.rjust(7)} #{seller_name.ljust(30)} #{seller_location.ljust(30)} #{price.rjust(8)} #{start_date}"
-#    puts @seller.phone + '    ' + @id
+    "#{(item_number).to_s.rjust(2)}. #{Listing.lfmt(title,34)} #{Listing.rfmt(mileage,7)} #{Listing.lfmt(seller_name,28)} #{Listing.lfmt(seller_location,32)} #{Listing.rfmt(price,8)} #{start_date}"
+  end
+
+  #keep #summary and #summary_header in sync
+  def self.summary_header
+#replace with printf style format?
+    "#{' '.rjust(2)}  #{lfmt('Vehicle',34)} #{rfmt('Mileage',7)} #{lfmt('Seller',28)} #{lfmt('Location',32)} #{rfmt('Price ',8)} #{'ListedDate'}"
+  end
+
+  def self.lfmt(string, size)
+    string.slice(0,size).ljust(size)
+  end
+
+  def self.rfmt(string, size)
+    string.slice(0,size).rjust(size)
   end
 
   def self.seller_listings(listing_seller)
