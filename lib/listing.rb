@@ -31,7 +31,7 @@ class Listing
   ATTRIBUTE_RJUST = 14
 
   def print_detail(item_number)
-    Scraper.get_detail_values(@item.class, item.detail_link, item.detail_values, @id, item.condition, seller.phone) if item.detail_values.empty?
+    Scraper.get_listing_details(@item.class, item.detail_url, @id, item.condition, seller.phone, item.detail_values) if item.detail_values.empty?
     puts '', "#{item.summary_detail(item_number)} #{Listing.lfmt(seller.name,28)} #{Listing.lfmt(seller.location,32)} #{start_date}"
     item.detail_values.each { |attribute, value| puts "#{attribute.to_s.ljust(12).rjust(ATTRIBUTE_RJUST)}: #{format_value(value)}" }
   end
