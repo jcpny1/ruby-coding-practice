@@ -12,10 +12,10 @@ class Scraper
     end
   end
 
-  def self.get_detail_values(item_class, detail_link, detail_values, condition, phone)
+  def self.get_detail_values(item_class, detail_link, detail_values, listing_id, condition, phone)
     case item_class.class
     when Automobile.class
-      scrape_automobile_results_detail_page(detail_link, detail_values, condition, phone)
+      scrape_automobile_results_detail_page(detail_link, detail_values, listing_id, condition, phone)
     else
       puts "Unsupported item type"
     end
@@ -72,39 +72,27 @@ private
     contact.css('strong')[0].text.strip
   end
 
+  PHONE_PATTERN = '\(\d\d\d\) \d\d\d-\d\d\d\d'
+
   def self.get_seller_phone(contact, id, open_url)
-    span = phone_parts = contact.css('span')
+    phone_number = nil
+    span = contact.css('span')
     if span.size > 1
-      phone_parts = span[0].text.split(' ')
-      "#{phone_parts[2]} #{phone_parts[3]}"
-    else
-      get_seller_phone_private(id, open_url,
-contact)
+      match_data = span[0].text.match(/#{PHONE_PATTERN}/)
+      phone_number = match_data[0] if match_data != nil
     end
+    phone_number = get_seller_phone_private(id, open_url) if phone_number == nil
+    phone_number
   end
 
-  def self.get_seller_phone_private(id, open_url,
-contact)
-    tgt_line = ''
-    alt_tgt_line = ''
+  def self.get_seller_phone_private(id, open_url)
+    phone_number = ''
     phone_id = 'aiGetPhoneNumber' + id
-    open(open_url).each_line { |line|
-      if line.include? phone_id
-        tgt_line = line
-        break
-      elsif line.include? 'phoneNumber.js'
-        alt_tgt_line = line
-        break
-      end
+    open(open_url).detect { |line|
+      match_data = line.match(/#{PHONE_PATTERN}/) if line.include? phone_id
+      phone_number = match_data[0] if match_data != nil
     }
-
-    if tgt_line.size > 0
-      tgt_line.split("'")[1]
-    else
-      puts "ALT PHONE: " + tgt_line
-      ''
-    end
-binding.pry
+    phone_number
   end
 
   def self.get_title(auto_result)
@@ -136,9 +124,10 @@ binding.pry
     }
   end
 
-  def self.scrape_automobile_results_detail_page(detail_link, detail_values, condition, phone)
+  def self.scrape_automobile_results_detail_page(detail_link, detail_values, listing_id, condition, phone)
     detail_doc = Nokogiri::HTML(open(detail_link, :read_timeout=>10))
     detail_values['Description'.to_sym] = detail_doc.css('.aiDetailsDescription')[0].children[2].text.strip
+    detail_values['Listing #'.to_sym] = listing_id
     detail_values['Condition'.to_sym] = condition
     detail_values['Certified'.to_sym] = ''
     detail_values['Phone'.to_sym] = phone
