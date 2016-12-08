@@ -1,6 +1,5 @@
 class Seller
-
-# .Seller describes the entity that is selling an Item.
+  # .Seller describes the entity that is selling the .Item in a .Listing.
 
   @@all = []
 

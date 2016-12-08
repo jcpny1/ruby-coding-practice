@@ -1,67 +1,31 @@
 class Scraper
+  # .Scraper converts a Newsday classified advertisement results web page into objects
 
-# .Scraper converts Newsday classified advertisement HTML into objects
-
-  def self.create_auto_listings(url, listings)
+  def self.create_listings(url, item_class)
     open_url = open(url, :read_timeout=>10)
     doc = Nokogiri::HTML(open_url)
-    doc.css('.aiResultsWrapper').each { |auto_result|
-      id = self.get_listing_id(auto_result)
-
-      title = get_title(auto_result)
-      title_parts = split_title(title)  # [year, make, model]
-
-      description_pod_div = auto_result.css('.aiDescriptionPod')
-      start_date = get_date(description_pod_div)
-      mileage = get_mileage(description_pod_div)
-      price = get_price(description_pod_div)
-
-      detail_link = get_detail_link(url, auto_result)
-      condition = get_condition(detail_link)
-      contact_div = auto_result.css('.contactLinks')
-      seller_name = get_seller_name(contact_div)
-      seller_location = get_seller_location(contact_div)
-      seller_phone = get_seller_phone(contact_div, id, open_url)
-
-      item = Automobile.new(title_parts[0], title_parts[1], title_parts[2], mileage, price, condition, detail_link)
-      seller = Seller.find_or_create(seller_name, seller_location, seller_phone)
-      listings << Listing.new(id, item, seller, start_date)
-    }
-
-    listings
-  end
-
-  def self.get_detail_values(detail_link, detail_values, condition, phone)
-    detail_doc = Nokogiri::HTML(open(detail_link, :read_timeout=>10))
-    detail_values['Description'.to_sym] = detail_doc.css('.aiDetailsDescription')[0].children[2].text.strip
-    detail_values['Condition'.to_sym] = condition
-    detail_values['Certified'.to_sym] = ''
-    detail_values['Phone'.to_sym] = phone
-    detail_cells = get_detail_cells(detail_doc)
-    index = 0
-    while index < detail_cells.size
-      if "\u00A0" == detail_cells[index].text  && 'aiCPOiconDetail' == detail_cells[index].children[0].attributes['class'].content   # logic break - icon attribute instead of attr/val pair.
-        detail_values['Certified'.to_sym] = 'Yes'
-        index += 1
-      else
-        attribute = detail_cells[index].text.chomp(':')
-        value = detail_cells[index+1].text
-        detail_values[attribute.to_sym] = value
-        index += 2
-      end
+    case item_class.class
+    when Automobile.class
+      scrape_automobile_results_page(url, open_url, doc, item_class)
+    else
+      puts "Unsupported item type"
     end
   end
+
+  def self.get_detail_values(item_class, detail_link, detail_values, condition, phone)
+    case item_class.class
+    when Automobile.class
+      scrape_automobile_results_detail_page(detail_link, detail_values, condition, phone)
+    else
+      puts "Unsupported item type"
+    end
+  end
+
+## PRIVATE METHODS
+private
 
   def self.get_condition(detail_link)
-    if detail_link.include?('-used-')
-      'Used'
-    elsif detail_link.include?('-new-')
-      'New'
-    elsif detail_link.include?('-certified-')
-      'Certified Pre-Owned'
-    else
-      ''
-    end
+    detail_link.match(/[a-z0-9]-(certified|new|used)-[0-9]/)[1].capitalize
   end
 
   def self.get_date(description)
@@ -84,7 +48,7 @@ class Scraper
 
   def self.get_mileage(description)
     mileage_text = description.css('.listingType').text  # 'Mileage: xx,xxx'
-    if mileage_text.include?('Available')
+    if mileage_text.include? 'Available'
       'NA'
     else
       mileage_text[mileage_text.index(' ')+1..mileage_text.size-1]
@@ -93,7 +57,7 @@ class Scraper
 
   def self.get_price(description)
     price_text = description.css('.price').text
-    if price_text.include?('Call')
+    if price_text.include? 'Call'
       'Call'
     else
       price_text
@@ -114,24 +78,83 @@ class Scraper
       phone_parts = span[0].text.split(' ')
       "#{phone_parts[2]} #{phone_parts[3]}"
     else
-      get_seller_phone_private(id, open_url)
+      get_seller_phone_private(id, open_url,
+contact)
     end
   end
 
-  def self.get_seller_phone_private(id, open_url)
+  def self.get_seller_phone_private(id, open_url,
+contact)
     tgt_line = ''
+    alt_tgt_line = ''
     phone_id = 'aiGetPhoneNumber' + id
-      open(open_url).each_line { |line|
-        if line.include?(phone_id)
-          tgt_line = line
-          break
-        end
-      }
-    tgt_line.split("'")[1]
+    open(open_url).each_line { |line|
+      if line.include? phone_id
+        tgt_line = line
+        break
+      elsif line.include? 'phoneNumber.js'
+        alt_tgt_line = line
+        break
+      end
+    }
+
+    if tgt_line.size > 0
+      tgt_line.split("'")[1]
+    else
+      puts "ALT PHONE: " + tgt_line
+      ''
+    end
+binding.pry
   end
 
   def self.get_title(auto_result)
     auto_result.css('.aiResultTitle h3').text  # '2010 Ford Explorer XL'
+  end
+
+  def self.scrape_automobile_results_page(url, open_url, doc, item_class)
+    doc.css('.aiResultsWrapper').each { |result|
+      id = self.get_listing_id(result)
+
+      title = get_title(result)
+      title_parts = split_title(title)  # [year, make, model]
+
+      description_pod_div = result.css('.aiDescriptionPod')
+      start_date = get_date(description_pod_div)
+      mileage = get_mileage(description_pod_div)
+      price = get_price(description_pod_div)
+
+      detail_link = get_detail_link(url, result)
+      condition = get_condition(detail_link)
+      contact_div = result.css('.contactLinks')
+      seller_name = get_seller_name(contact_div)
+      seller_location = get_seller_location(contact_div)
+      seller_phone = get_seller_phone(contact_div, id, open_url)
+
+      item = item_class.new(title_parts[0], title_parts[1], title_parts[2], mileage, price, condition, detail_link)
+      seller = Seller.find_or_create(seller_name, seller_location, seller_phone)
+      Listing.new(id, item, seller, start_date)
+    }
+  end
+
+  def self.scrape_automobile_results_detail_page(detail_link, detail_values, condition, phone)
+    detail_doc = Nokogiri::HTML(open(detail_link, :read_timeout=>10))
+    detail_values['Description'.to_sym] = detail_doc.css('.aiDetailsDescription')[0].children[2].text.strip
+    detail_values['Condition'.to_sym] = condition
+    detail_values['Certified'.to_sym] = ''
+    detail_values['Phone'.to_sym] = phone
+    detail_cells = get_detail_cells(detail_doc)
+    index = 0
+    while index < detail_cells.size
+      if "\u00A0" == detail_cells[index].text  && 'aiCPOiconDetail' == detail_cells[index].children[0].attributes['class'].content   # certified icon attribute does not have a value.
+        detail_values[:Certified] = 'Yes'
+        index += 1
+      else
+        attribute = detail_cells[index].text.chomp(':')
+        value = detail_cells[index+1].text
+        detail_values[attribute.to_sym] = value
+        index += 2
+      end
+    end
   end
 
   def self.split_title(title)
@@ -141,5 +164,4 @@ class Scraper
     model = title_parts.last(title_parts.size - 2).join(' ')
     [year, make, model]
   end
-
 end

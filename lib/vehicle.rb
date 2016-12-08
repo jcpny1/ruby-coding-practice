@@ -1,6 +1,6 @@
 class Vehicle < Item
-
-# .Vehicle describes something for sale. It is subclassed based on the type of vehicle (e.g., automobile, boat, motorcycle, etc.)
+  # .Vehicle describes a Vehicle type of item.
+  # It is expected to be subclassed based on the type of vehicle (e.g., automobile, boat, motorcycle, etc.)
 
   def initialize(year, make, model, price, condition, detail_link)
     super("#{year} #{make} #{model}", price, condition, detail_link)
@@ -9,4 +9,7 @@ class Vehicle < Item
     @model = model
   end
 
+  def self.summary_header
+    "OVERRIDE ME!"
+  end
 end

@@ -1,55 +1,58 @@
 class CLI
+  # .CLI is the command line interface for the classified app.
 
-  DEFAULT_PAGE_SIZE = 10
+  def initialize(item_class, url, page_size:10)
+    @item_class = item_class
+    @page_size = page_size
+    Scraper.create_listings(url, @item_class)  # Create listings from web page.
+  end
 
-  def initialize
-    listings = []
-    page_size = DEFAULT_PAGE_SIZE
+  def run
+    start_index =  0  # summary display start item
+    end_index   = -1  # summary display end item
+    user_input  = ''  # command line input
 
-    auto_url = 'http://long-island-cars.newsday.com/motors/results/car?maxYear=2010&radius=0&min_price=1000&view=List_Detail&sort=Price+desc%2C+Priority+desc&rows=50'
-    Scraper.create_auto_listings(auto_url, listings)
-
-    start_index =  0
-    end_index   = -1
-    user_input  = ''
-
+    # Display advance loop
     while true
       start_index = end_index + 1
-      start_index = 0 if start_index == Listing.all.size
+      start_index = 0 if start_index == Listing.all(@item_class).size
 
+      # Command input loop
       begin
-        end_index = start_index + page_size-1  # put inside loop in case page size changes
-        end_index = Listing.all.size-1 if end_index >= Listing.all.size
+        end_index = start_index + @page_size-1  # if page size changes inside this loop, make adjustments.
+        end_index = Listing.all(@item_class).size-1 if end_index >= Listing.all(@item_class).size
 
-        if user_input != 'h'
-          puts Listing.summary_header
-          Listing.all[start_index..end_index].each_with_index { |listing, index| puts listing.summary(start_index+index+1) }
-        end
+        # Display a page of listings
+        Listing.print_summary(Automobile, start_index, end_index) if user_input != 'h'
 
+        # Get user imput
         user_input = prompt('Command (or h for help): ')
 
-        if user_input == 'h'
-          display_help
-        elsif user_input == 'p'
-          page_size = prompt('Enter new page size: ').to_i
-          page_size = DEFAULT_PAGE_SIZE if page_size <= 0
-        elsif user_input == 'q'
-          exit
-        elsif user_input.to_i > 0
-          Listing.all[user_input.to_i-1].print_detail(user_input.to_i)
-          prompt ('Press Enter to continue...')
-        end
-      end until user_input == ''
-    end
+        # Process user input
+        exit if process_user_input(user_input) == false
 
-    # puts Seller.all.collect { |seller| seller.name }
-    # Seller.all.each { |seller|
-    #   puts seller.name
-    #   Listing.seller_listings(seller).each { |listing|
-    #     print '  '
-    #     listing.print_summary
-    #   }
-    # }
+      end until user_input == ''
+    end  # CLI loop
+  end
+
+  # Returns whether or not to continue executing program
+  def process_user_input(user_input)
+    if user_input == 'h'
+      display_help
+      true
+    elsif user_input == 'p'
+      tmp_page_size = prompt('Enter new page size: ').to_i
+      @page_size = tmp_page_size if tmp_page_size > 0
+      true
+    elsif user_input == 'q'
+      false
+    elsif user_input.to_i > 0
+      Listing.all(@item_class)[user_input.to_i-1].print_detail(user_input.to_i)
+      prompt ('Press Enter to continue...')
+      true
+    else
+      true
+    end
   end
 
   def display_help
@@ -67,5 +70,4 @@ class CLI
   def yellow(string)
      "\e[33m#{string}\e[0m"
    end
-
 end

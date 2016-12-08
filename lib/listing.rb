@@ -1,13 +1,18 @@
 class Listing
+  # .Listing describes a classified advertisement.
+  # A Listing has one item and one seller, along with listing-based attributes such as the listing start date.
 
-# .Listing describes a classified advertisement and contains one item and one seller, along with a listing start date.
-
-  @@all = []
+  @@all_automobile_listings = []
 
   attr_reader :id, :item, :seller, :start_date
 
-  def self.all
-    @@all
+  def self.all(item_class)
+    case item_class.class
+    when Automobile.class
+      @@all_automobile_listings
+    else
+      puts "Unsupported item type"
+    end
   end
 
   def initialize(id, item, seller, start_date)
@@ -15,30 +20,19 @@ class Listing
     @item = item
     @seller = seller
     @start_date = start_date
-    @@all << self
-  end
-
-  def description
-    item.description
-  end
-
-  def detail_link
-    item.detail_link
-  end
-
-  def mileage
-    item.is_a?(Automobile) ? item.mileage : 0
-  end
-
-  def price
-    item.price
+    case item.class
+    when Automobile.class
+      @@all_automobile_listings << self
+    else
+      puts "Unsupported item type"
+    end
   end
 
   ATTRIBUTE_RJUST = 14
 
   def print_detail(item_number)
-    Scraper.get_detail_values(detail_link, item.detail_values, item.condition, seller.phone) if item.detail_values.empty?
-    puts '', summary(item_number)
+    Scraper.get_detail_values(@item.class, item.detail_link, item.detail_values, item.condition, seller.phone) if item.detail_values.empty?
+    puts '', "#{item.summary_detail(item_number)} #{Listing.lfmt(seller.name,28)} #{Listing.lfmt(seller.location,32)} #{start_date}"
     item.detail_values.each { |attribute, value| puts "#{attribute.to_s.ljust(12).rjust(ATTRIBUTE_RJUST)}: #{format_value(value)}" }
   end
 
@@ -62,16 +56,14 @@ class Listing
     new_string
   end
 
-  #keep #summary and #summary_header in sync
-  def summary(item_number)
-#replace with printf style format?
-    "#{(item_number).to_s.rjust(2)}. #{Listing.lfmt(title,34)} #{Listing.rfmt(mileage,7)} #{Listing.lfmt(seller_name,28)} #{Listing.lfmt(seller_location,32)} #{Listing.rfmt(price,8)} #{start_date}"
-  end
-
-  #keep #summary and #summary_header in sync
-  def self.summary_header
-#replace with printf style format?
-    "#{' '.rjust(2)}  #{lfmt('Vehicle',34)} #{rfmt('Mileage',7)} #{lfmt('Seller',28)} #{lfmt('Location',32)} #{rfmt('Price ',8)} #{'ListedDate'}"
+  def self.print_summary(item_class, start_index, end_index)
+    case item_class.class
+    when Automobile.class
+      puts "#{Automobile.summary_header} #{Listing.lfmt('Seller',28)} #{Listing.lfmt('Location',32)} #{'ListedDate'}"
+      all(item_class)[start_index..end_index].each_with_index { |listing, index| puts "#{listing.item.summary_detail(start_index+index+1)} #{Listing.lfmt(listing.seller.name,28)} #{Listing.lfmt(listing.seller.location,32)} #{listing.start_date}" }
+    else
+      puts "Unsupported item type"
+    end
   end
 
   def self.lfmt(string, size)
@@ -98,9 +90,5 @@ class Listing
 
   def seller_phone
     seller.phone
-  end
-
-  def title
-    item.title
   end
 end
