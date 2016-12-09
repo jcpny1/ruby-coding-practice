@@ -1,12 +1,13 @@
 class CLI
-  # .CLI is the command line interface for the classified app.
+  # This is the command line interface for the classified app
 
   def initialize(item_class, url, page_size:10)
     @item_class = item_class
-    @page_size = page_size
-    Scraper.create_listings(url, @item_class)  # Create listings from web page.
+    @page_size  = page_size
+    Scraper.create_listings(url, @item_class)
   end
 
+  # Begin executing command line interface
   def run
     start_index =  0  # summary display start item
     end_index   = -1  # summary display end item
@@ -23,7 +24,7 @@ class CLI
         end_index = Listing.all(@item_class).size-1 if end_index >= Listing.all(@item_class).size
 
         # Display a page of listings
-        Listing.print_summary(Automobile, start_index, end_index) if user_input != 'h'
+        Listing.print_summary(@item_class, start_index, end_index) if user_input != 'h'
 
         # Get user imput
         user_input = prompt('Command (or h for help): ')
@@ -31,9 +32,12 @@ class CLI
         # Process user input
         exit if process_user_input(user_input) == false
 
-      end until user_input == ''
+      end until user_input == ''  # then display next page of summaries.
     end  # CLI loop
   end
+
+  ## PRIVATE METHODS
+  private
 
   # Returns whether or not to continue executing program
   def process_user_input(user_input)
@@ -55,18 +59,21 @@ class CLI
     end
   end
 
+  # Display command help
   def display_help
-    puts '  To continue scrolling, press Enter.'
-    puts '  For listing detail, enter listing number and press Enter'
-    puts '  To terminate, type q and press Enter.'
-    puts '  To display this help, type h and press Enter.'
+    puts '  To continue scrolling, press Enter.',
+         '  For listing detail, enter listing number and press Enter',
+         '  To terminate, type q and press Enter.',
+         '  To display this help, type h and press Enter.'
   end
 
+  # Display prompt string and return user's input
   def prompt(string)
     print yellow(string)
     gets.chomp
   end
 
+  # Format string to display in color yellow
   def yellow(string)
      "\e[33m#{string}\e[0m"
    end

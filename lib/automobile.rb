@@ -1,5 +1,5 @@
 class Automobile < Vehicle
-  # .Automobile describes an automobile type of Vehicle
+  # .Automobile describes a Vehicle type of Automobile
 
   attr_reader :mileage
 
@@ -8,13 +8,13 @@ class Automobile < Vehicle
       @mileage = mileage
     end
 
-    #keep #summary_header and #summary_detail aligned
+    # Return the summary listing summary title row
     def self.summary_header
-      "#{' '.rjust(2)}  #{Listing.lfmt('Vehicle',34)} #{Listing.rfmt('Mileage',7)} #{Listing.rfmt('Price ',8)}"
+      "#{Listing.fmt_col(1,'')} #{Listing.fmt_col(2,'Vehicle')} #{Listing.fmt_col(3,'Mileage')} #{Listing.fmt_col(4,'Price ')}"
     end
 
-    #keep #summary_header and #summary_detail aligned
-    def summary_detail(item_number)
-      "#{(item_number).to_s.rjust(2)}. #{Listing.lfmt(title,34)} #{Listing.rfmt(mileage,7)} #{Listing.rfmt(price,8)}"
+    # Return a summary listing detail row
+    def summary_detail
+      "#{Listing.fmt_col(2,title)} #{Listing.fmt_col(3,mileage)} #{Listing.fmt_col(4,price)}"
     end
 end

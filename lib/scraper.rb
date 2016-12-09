@@ -14,10 +14,10 @@ class Scraper
   end
 
   # Returns detail attributes and values in detail_values hash
-  def self.get_listing_details(item_class, detail_url, listing_id, condition, phone, detail_values)
+  def self.get_listing_details(item_class, detail_url, condition, detail_values)
     case item_class.class
     when Automobile.class
-      scrape_automobile_results_detail_page(detail_url, listing_id, condition, phone, detail_values)
+      scrape_automobile_results_detail_page(detail_url, condition, detail_values)
     else
       puts "Unsupported item type"
     end
@@ -42,7 +42,7 @@ private
   end
 
   # Returns a summary record's detail page url
-  def self.get_detail_url(url, auto_result)  # detail link is given as relative to summary page's domain
+  def self.get_detail_url(url, auto_result)  # detail link is given as relative to the summary page's domain
     uri = URI.parse(url)
     "#{uri.scheme}://#{uri.host}#{auto_result.css('.aiResultTitle h3 a')[0]['href']}"
   end
@@ -101,7 +101,7 @@ private
       id = self.get_listing_id(result)
 
       title = get_title(result)
-      title_parts = split_title(title)  # [year, make, model]
+      title_parts = split_title(title)  # => [year, make, model]
 
       description_pod_div = result.css('.aiDescriptionPod')
       start_date = get_date(description_pod_div)
@@ -122,14 +122,12 @@ private
   end
 
   # Returns detail attributes and values in detail_values hash
-  def self.scrape_automobile_results_detail_page(detail_url, listing_id, condition, phone, detail_values)
+  def self.scrape_automobile_results_detail_page(detail_url, condition, detail_values)
     detail_doc = Nokogiri::HTML(open(detail_url, :read_timeout=>10))
     # Create some entries manually.
     detail_values['Description'.to_sym] = detail_doc.css('.aiDetailsDescription')[0].children[2].text.strip
-    detail_values['Listing #'.to_sym] = listing_id
     detail_values['Condition'.to_sym] = condition
     detail_values['Certified'.to_sym] = ''
-    detail_values['Phone'.to_sym    ] = phone
     # Create the rest from scraping the html's detail attrribute/value table.
     detail_cells = get_detail_cells(detail_doc)
     index = 0
