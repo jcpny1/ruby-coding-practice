@@ -2,7 +2,7 @@ class Listing
   # .Listing describes a classified advertisement
   # A Listing has one item and one seller, along with listing-based attributes such as the listing start date
 
-  @@automobiles = []  # contains all the listings of class Automobile
+  @@listings = []  # contains all the listings
 
   attr_reader :id, :item, :seller, :start_date
 
@@ -11,17 +11,16 @@ class Listing
     @item = item
     @seller = seller
     @start_date = start_date
-    Listing.all(item.class) << self
+    Listing.all << self
   end
 
   # Return array of listings of given item_class
-  def self.all(item_class)
-    case item_class.class
-    when Automobile.class
-      @@automobiles
-    else
-      puts "Unsupported item type"
-    end
+  def self.all
+    @@listings
+  end
+
+  def self.clear
+    @@listings.celar
   end
 
   # Prints a detail listing for a single item
@@ -36,7 +35,7 @@ class Listing
   # Prints the specified summary listings for the specified item subclass
   def self.print_summary(item_class, start_index, end_index)
     puts "#{item_class.summary_header} #{fmt_col(5,'Seller')} #{fmt_col(6,'Location')} #{fmt_col(7,'List Date')}"
-    all(item_class)[start_index..end_index].each_with_index { |listing, index| puts summary_detail_row(listing, start_index+index+1) }
+    all[start_index..end_index].each_with_index { |listing, index| puts summary_detail_row(listing, start_index+index+1) }
   end
 
   # Prints a summary detail row
