@@ -2,9 +2,7 @@ class Listing
   # .Listing describes a classified advertisement
   # A Listing has one item and one seller, along with listing-based attributes such as the listing start date
 
-  @@listings = []  # contains all the listings
-
-  attr_reader :id, :item, :seller, :start_date
+  @@all_listings = []
 
   def initialize(id, item, seller, start_date)
     @id = id
@@ -14,19 +12,17 @@ class Listing
     Listing.all << self
   end
 
-  # Return array of listings of given item_class
-  def self.all
-    @@listings
-  end
-
+  # Empty list of created objects
   def self.clear
-    @@listings.celar
+    Item.clear
+    Seller.clear
+    all.clear
   end
 
   # Prints a detail listing for a single item
   def print_detail(item_number)
     puts '',
-         Listing.summary_detail_row(self, item_number),
+         self.summary_detail_row(item_number),
          @item.details_to_string,
          "#{Listing.fmt_detail_attr('Phone'    )}: #{Listing.fmt_detail_val(@seller.phone)}",
          "#{Listing.fmt_detail_attr('Listing #')}: #{Listing.fmt_detail_val(@id)}"
@@ -34,30 +30,20 @@ class Listing
 
   # Prints the specified summary listings for the specified item subclass
   def self.print_summary(item_class, start_index, end_index)
-    puts "#{item_class.summary_header} #{fmt_col(5,'Seller')} #{fmt_col(6,'Location')} #{fmt_col(7,'List Date')}"
-    all[start_index..end_index].each_with_index { |listing, index| puts summary_detail_row(listing, start_index+index+1) }
+    puts "    #{item_class.summary_header} #{Seller.summary_header} #{Listing.lfmt('List Date', 10)}"
+    all[start_index..end_index].each_with_index { |listing, index| puts listing.summary_detail_row(start_index+index+1) }
   end
 
   # Prints a summary detail row
-  def self.summary_detail_row(listing, item_number)
-    "#{(item_number).to_s.rjust(2)}. #{listing.item.summary_detail} #{fmt_col(5,listing.seller.name)} #{fmt_col(6,listing.seller.location)} #{fmt_col(7,listing.start_date)}"
+  def summary_detail_row(item_number)
+    "#{(item_number).to_s.rjust(2)}. #{@item.summary_detail} #{@seller.summary_detail} #{Listing.lfmt(@start_date, 10)}"
   end
 
-  # NOTE: possibly replace all this formatting code by changing #puts to use printf style formatting instead.
-
-  # Standardizes column widths and justifications
-  def self.fmt_col(col_num, str)
-    case col_num
-    when 1; "#{rfmt(str,  3)}"
-    when 2; "#{lfmt(str, 34)}"
-    when 3; "#{rfmt(str,  7)}"
-    when 4; "#{rfmt(str,  8)}"
-    when 5; "#{lfmt(str, 28)}"
-    when 6; "#{lfmt(str, 32)}"
-    when 7; "#{lfmt(str, 10)}"
-    else
-      "error"
-    end
+  # Formats an array of strings according to an array of formats
+  def self.fmt_cols(values, formats)
+    result = ''
+    values.each_with_index { |value, index| result += "#{Listing.fmt_col(value, formats[index][0], formats[index][1])} " }
+    result
   end
 
   # Format a detail attribute
@@ -74,8 +60,8 @@ class Listing
     line_len = 0
     string.split(' ').each { |word|
       if (line_len += word.size + 1) > MAX_LINE_LENGTH
-        if line_len > (MAX_LINE_LENGTH + 2)  # allow a word to extend over MAX_LINE_LENGTH a bit.
-          new_string += "\n  #{self.fmt_detail_attr('')}"
+        if line_len > (MAX_LINE_LENGTH + 2)               # Allow a word to extend over MAX_LINE_LENGTH a bit to avoid large
+          new_string += "\n  #{self.fmt_detail_attr('')}" # empty spaces on right margin due to large words not quite fitting.
           line_len = 0
         end
       end
@@ -86,6 +72,23 @@ class Listing
 
   ## PRIVATE METHODS
   private
+
+  # Return array of listings of given item_class
+  def self.all
+    @@all_listings
+  end
+
+  # Format a column
+  def self.fmt_col(str, width, justify)
+    case justify
+    when 'l'
+      "#{lfmt(str, width)}"
+    when 'r'
+      "#{rfmt(str, width)}"
+    else
+      "error"
+    end
+  end
 
   # Left justify string and pad or trim to size
   def self.lfmt(string, size)

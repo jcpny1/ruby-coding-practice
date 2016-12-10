@@ -2,7 +2,9 @@ class Seller
   # .Seller describes the entity that is selling the .Item in a .Listing
   # A seller is uniquely identified by name + location + phone
 
-  @@all = []  # contains all the Sellers
+  @@SUMMARY_COL_FORMATS = [[28,'l'], [32,'l']]  # width, justification
+
+  @@all_sellers = []
 
   attr_reader :name, :location, :phone
 
@@ -15,9 +17,9 @@ class Seller
     Seller.all << self
   end
 
-  # Returns array of all sellers
-  def self.all
-    @@all
+  # Empty list of created objects
+  def self.clear
+    all.clear
   end
 
   # Returns the specified seller, or creates a new one if not found in @@all
@@ -28,5 +30,23 @@ class Seller
   # Returns the specified seller from @all or nil if not found
   def self.find_seller(name, location, phone)
     all.find { |seller| seller.name == name && seller.location == location && seller.phone == phone }
+  end
+
+  # Return a summary listing detail row
+  def summary_detail
+    Listing.fmt_cols([@name, @location], @@SUMMARY_COL_FORMATS)
+  end
+
+  # Return the summary listing summary title row
+  def self.summary_header
+    Listing.fmt_cols(['Seller', 'Location'], @@SUMMARY_COL_FORMATS)
+  end
+
+  ## PRIVATE METHODS
+  private
+
+  # Returns array of all sellers
+  def self.all
+    @@all_sellers
   end
 end

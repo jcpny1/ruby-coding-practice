@@ -3,7 +3,8 @@ class Scraper
 
   # Creates listings from summary web page
   def self.create_listings(url, item_class)
-    Listing.all.clear # clear out any existing listings.
+    Listing.clear # clear out any existing listings.
+
     url_file = open(url, :read_timeout=>10)
     doc = Nokogiri::HTML(url_file)
     case item_class.name

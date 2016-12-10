@@ -1,14 +1,10 @@
 class CLI
   # This is the command line interface for the classified app
 
-  def initialize(page_size:10)
-    @page_size  = page_size
-  end
-
   # Begin executing command line interface
-  def run
-    init  # Initialize listing criteria.
+  def self.run(page_size:10)
     user_input = ''
+    set_listing_type
 
     # Display advance loop
     while true
@@ -17,7 +13,7 @@ class CLI
 
       # Command input loop
       begin
-        @end_index = @start_index + @page_size-1  # if page size changes inside this loop, make adjustments.
+        @end_index = @start_index + page_size-1  # if page size changes inside this loop, make adjustments.
         @end_index = Listing.all.size-1 if @end_index >= Listing.all.size
 
         # Display a page of listings
@@ -36,7 +32,52 @@ class CLI
   ## PRIVATE METHODS
   private
 
-  def change_listing_type
+  # Display command help
+  def self.display_help
+    puts '  To continue scrolling, press Enter.',
+         '  For listing detail, enter listing number and press Enter',
+         '  To change listing type, type l and press Enter',
+         '  To terminate program, type q and press Enter.',
+         '  To display this help, type h and press Enter.'
+  end
+
+  # Returns whether or not to continue executing program
+  def self.process_user_input(user_input)
+    continue_program = true
+
+    if user_input == 'h'
+      display_help
+    elsif user_input == 'l'
+      set_listing_type
+    elsif user_input == 'p'
+      tmp_page_size = prompt('Enter new page size: ').to_i
+      page_size = tmp_page_size if tmp_page_size > 0
+    elsif user_input == 'q'
+      continue_program = false
+    elsif user_input.to_i > 0
+      index = user_input.to_i - 1
+      if index > Listing.all.size
+        STDERR.puts red('Invalid selection')
+      else
+        Listing.all[index].print_detail(index+1)
+      end
+      prompt 'Press Enter to continue...'
+    end
+    continue_program
+  end
+
+  # Display prompt string and return user's input
+  def self.prompt(string)
+    print yellow(string)
+    gets.chomp
+  end
+
+  # Format string to display in the color red
+  def self.red(string)
+    "\e[31m#{string}\e[0m"
+  end
+
+  def self.set_listing_type
     begin
       valid_input = false
 
@@ -53,7 +94,7 @@ class CLI
       when 2
         valid_input = true
         @item_class  = Boat
-        @summary_url = 'http://www.boattrader.com/search-results/NewOrUsed-used/Type-power/Category-all/Zip-10030/Radius-100/Price-5000,50000/Sort-Price:DESC/Page-1,50?'
+        @summary_url = 'http://www.boattrader.com/search-results/NewOrUsed-used/Type-power/Category-all/Zip-10030/Radius-100/Price-5000,150000/Sort-Price:DESC/Page-1,50?'
       else
         STDERR.puts red('Invalid selection')
       end
@@ -64,56 +105,8 @@ class CLI
     @end_index   = -1  # summary display end item
   end
 
-  # Display command help
-  def display_help
-    puts '  To continue scrolling, press Enter.',
-         '  For listing detail, enter listing number and press Enter',
-         '  To change listing type, type l and press Enter',
-         '  To terminate program, type q and press Enter.',
-         '  To display this help, type h and press Enter.'
+  # Format string to display in the color yellow
+  def self.yellow(string)
+    "\e[33m#{string}\e[0m"
   end
-
-  def init
-    change_listing_type
-  end
-
-  # Returns whether or not to continue executing program
-  def process_user_input(user_input)
-    continue_program = true
-
-    if user_input == 'h'
-      display_help
-    elsif user_input == 'l'
-      change_listing_type
-    elsif user_input == 'p'
-      tmp_page_size = prompt('Enter new page size: ').to_i
-      @page_size = tmp_page_size if tmp_page_size > 0
-    elsif user_input == 'q'
-      continue_program = false
-    elsif user_input.to_i > 0
-      index = user_input.to_i - 1
-      if index > Listing.all.size
-        STDERR.puts red('Invalid selection')
-      else
-        Listing.all[index].print_detail(index+1)
-      end
-      prompt 'Press Enter to continue...'
-    end
-    continue_program
-  end
-
-  # Display prompt string and return user's input
-  def prompt(string)
-    print yellow(string)
-    gets.chomp
-  end
-
-  # Format string to display in color red
-  def red(string)
-     "\e[31m#{string}\e[0m"
-   end
-  # Format string to display in color yellow
-  def yellow(string)
-     "\e[33m#{string}\e[0m"
-   end
 end
