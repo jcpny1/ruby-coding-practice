@@ -27,6 +27,10 @@ class Item
     result
   end
 
+  def get_detail_phone
+    @detail_values[:Phone]
+  end
+
   ## PRIVATE METHODS
   private
 

@@ -6,7 +6,8 @@ class Seller
 
   @@all_sellers = []
 
-  attr_reader :name, :location, :phone
+  attr_accessor :phone
+  attr_reader   :name, :location, :phone
 
   private_class_method :new #  only allow #new from #find_or_create
 

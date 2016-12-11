@@ -23,9 +23,12 @@ class Listing
   def print_detail(item_number)
     puts '',
          self.summary_detail_row(item_number),
-         @item.details_to_string,
-         "#{Listing.fmt_detail_attr('Phone'    )}: #{Listing.fmt_detail_val(@seller.phone)}",
-         "#{Listing.fmt_detail_attr('Listing #')}: #{Listing.fmt_detail_val(@id)}"
+         @item.details_to_string
+
+    # display seller phone number if there was no phone number found in the detail listing.
+    puts "#{Listing.fmt_detail_attr('Phone'    )}: #{Listing.fmt_detail_val(@seller.phone)}" if !@item.get_detail_phone
+
+    puts "#{Listing.fmt_detail_attr('Listing #')}: #{Listing.fmt_detail_val(@id)}"
   end
 
   # Prints the specified summary listings for the specified item subclass
