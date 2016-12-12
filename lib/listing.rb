@@ -26,7 +26,7 @@ class Listing
          @item.details_to_string
 
     # display seller phone number if there was no phone number found in the detail listing.
-    puts "#{Listing.fmt_detail_attr('Phone'    )}: #{Listing.fmt_detail_val(@seller.phone)}" if !@item.get_detail_phone
+    puts "#{Listing.fmt_detail_attr('Phone'    )}: #{Listing.fmt_detail_val(@seller.phone)}" if @item.get_detail_phone.nil?
 
     puts "#{Listing.fmt_detail_attr('Listing #')}: #{Listing.fmt_detail_val(@id)}"
   end

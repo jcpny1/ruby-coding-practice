@@ -106,7 +106,7 @@ private
   # Returns the seller's phone number, if it exists
   def self.get_seller_phone(doc, id, url_file)
     span = doc.css('span')
-    match_data = span[0].text.match(/#{PHONE_PATTERN}/) if span.size > 1
+    match_data = span[0].text.match(/#{PHONE_PATTERN}/) if 1 < span.size
     match_data != nil ? match_data[0] : get_seller_phone_private(url_file, id)
   end
 

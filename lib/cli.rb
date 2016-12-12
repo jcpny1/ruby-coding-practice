@@ -3,6 +3,7 @@ class CLI
 
   # Begin executing command line interface
   def self.run(page_size:10)
+    @page_size = page_size
     user_input = ''
     set_listing_type
 
@@ -13,7 +14,7 @@ class CLI
 
       # Command input loop
       begin
-        @end_index = @start_index + page_size-1  # if page size changes inside this loop, make adjustments.
+        @end_index = @start_index + @page_size-1  # if page size changes inside this loop, make adjustments.
         @end_index = Listing.all.size-1 if @end_index >= Listing.all.size
 
         # Display a page of listings
@@ -23,7 +24,7 @@ class CLI
         user_input = prompt 'Command (or h for help): '
 
         # Process user input
-        exit if process_user_input(user_input) == false
+        exit if !process_user_input(user_input)
 
       end until user_input == ''  # then display next page of summaries.
     end  # CLI loop
@@ -45,23 +46,26 @@ class CLI
   def self.process_user_input(user_input)
     continue_program = true
 
-    if user_input == 'h'
+    case user_input
+    when 'h'
       display_help
-    elsif user_input == 'l'
+    when 'l'
       set_listing_type
-    elsif user_input == 'p'
+    when 'p'
       tmp_page_size = prompt('Enter new page size: ').to_i
-      page_size = tmp_page_size if tmp_page_size > 0
-    elsif user_input == 'q'
+      @page_size = tmp_page_size if 0 < tmp_page_size
+    when 'q'
       continue_program = false
-    elsif user_input.to_i > 0
-      index = user_input.to_i - 1
-      if index > Listing.all.size
-        STDERR.puts red('Invalid selection')
-      else
-        Listing.all[index].print_detail(index+1)
+    else
+      if 0 < user_input.to_i
+        index = user_input.to_i - 1
+        if index > Listing.all.size
+          STDERR.puts red('Invalid selection')
+        else
+          Listing.all[index].print_detail(index+1)
+        end
+        prompt 'Press Enter to continue...'
       end
-      prompt 'Press Enter to continue...'
     end
     continue_program
   end
