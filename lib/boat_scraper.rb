@@ -144,7 +144,7 @@ private
   end
 
   # Returns the Seller's phone number
-  def seller_phone(doc)
+  def self.seller_phone(doc)
     phone = doc.css('.seller-info .phone').text
     phone.reverse!  # alt listing phone has css format 'direction: rtl'
     phone[0] = '('; phone[4] = ')'
