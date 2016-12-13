@@ -4,22 +4,23 @@ class BoatScraper
   # Creates listings from summary web page
   def self.scrape_results_page(url, url_file, doc, item_class)
     doc.css('.boat-listings li').each { |result|
-      id = get_listing_id(result)
+      id = listing_id(result)
       next if id.nil?
 
       descr_div = result.css('.description')
-      title = get_title(descr_div)
-      title_parts = split_title(title)  # => [year, make, model]
+      title_parts = title_parts(descr_div)  # => [year, make, model]
+      start_date = ''  # Listing start_date not available.
 
-      price = get_price(descr_div)
-      seller_location = get_seller_location(descr_div)
-      seller_name = get_seller_name(descr_div)
-      detail_url = get_detail_url(url, result)
+
+      sale_price = sale_price(descr_div)
+      seller_location = seller_location(descr_div)
+      seller_name = seller_name(descr_div)
+      detail_url = detail_url(url, result)
       condition = 'Used'
 
-      item = item_class.new(title_parts[0], title_parts[1], title_parts[2], price, condition, detail_url)
+      item = item_class.new(title_parts[0], title_parts[1], title_parts[2], sale_price, condition, detail_url)
       seller = Seller.find_or_create(seller_name, seller_location, '')  # Seller phone only available in details.
-      Listing.new(id, item, seller, '')  # Listing start_date not available.
+      Listing.new(id, item, seller, start_date)
     }
   end
 
@@ -34,12 +35,22 @@ class BoatScraper
       do_normal_processing(detail_doc, boat_details_doc, condition, detail_values)
     end
 
-    # NOTE: keep phone number last in list for display consistency
-    detail_values['Phone'.to_sym] = detail_doc.css('.phone').text
+    detail_values['Phone'.to_sym] = detail_doc.css('.phone').text  # NOTE: keep phone number last in list for display consistency.
   end
 
 ## PRIVATE METHODS
 private
+
+  # Returns the detail table
+  def self.detail_cells(doc)
+    doc.css('#collapsible-content-areas tr')
+  end
+
+  # Returns a summary record's detail page url
+  def self.detail_url(url, doc)  # detail link is given as relative to the summary page's domain
+    uri = URI.parse(url)
+    "#{uri.scheme}://#{uri.host}#{doc.css('.inner a')[0]['href']}"
+  end
 
   # Returns detail attributes and values in detail_values hash
   def self.do_alt_processing(doc, condition, detail_values)
@@ -62,11 +73,7 @@ private
       end
     }
 
-    # NOTE: keep phone number last in list for display consistency
-    phone = main_content.css('.seller-info .phone').text
-    phone.reverse!  # alt listing phone has css format 'direction: rtl'
-    phone[0] = '('; phone[4] = ')'
-    detail_values['Phone'.to_sym] = phone
+    detail_values['Phone'.to_sym] = seller_phone(main_content)  # NOTE: keep phone number last in list for display consistency.
   end
 
   # Returns detail attributes and values in detail_values hash
@@ -76,9 +83,8 @@ private
     detail_values['Condition'.to_sym] = condition
 
     # Create the rest from scraping the html's detail attrribute/value table.
-    detail_cells = get_detail_cells(boat_doc)
+    detail_cells = detail_cells(boat_doc)
     (0...detail_cells.size).each { |index|
-
       attribute_tag = detail_cells[index].children[1]
       if attribute_tag
         attribute = attribute_tag.text
@@ -93,44 +99,10 @@ private
     }
   end
 
-# Returns the detail table
-def self.get_detail_cells(doc)
-  doc.css('#collapsible-content-areas tr')
-end
-
-# Returns a summary record's detail page url
-def self.get_detail_url(url, doc)  # detail link is given as relative to the summary page's domain
-  uri = URI.parse(url)
-  "#{uri.scheme}://#{uri.host}#{doc.css('.inner a')[0]['href']}"
-end
-
   # Returns the listing's id. If the listing doesn't have an id, it's not really a listing.
-  def self.get_listing_id(doc)
+  def self.listing_id(doc)
     value = doc.attributes['data-reporting-impression-product-id']
     value.text if value
-  end
-
-  # Returns the listing's sale price
-  def self.get_price(doc)
-    value = doc.css('.price .data').text
-    value != '' ? value : doc.css('.price .txt')[0].children[1].text
-  end
-
-  # Returns the listing's sale price
-  def self.get_seller_location(doc)
-    value = doc.css('.location .data').text
-    value != '' ? value : doc.css('.location .txt')[0].children[1].text
-  end
-
-  # Returns the seller's name
-  def self.get_seller_name(doc)
-    value = doc.css('.offered-by .data').text
-    value != '' ? value : doc.css('.offered-by .txt')[0].children[1].text
-  end
-
-  # Returns the summary listing's title
-  def self.get_title(doc)
-    doc.css('.name').text  # '2000 JASON 25 Downeaster' (also Grady White, Grady-White, Sea Ray, ...)
   end
 
   # Parse description list data into hash
@@ -153,10 +125,42 @@ end
     detail_values[attribute.to_sym] = value
   end
 
+  # Returns the listing's sale price
+  def self.sale_price(doc)
+    value = doc.css('.price .data').text
+    value != '' ? value : doc.css('.price .txt')[0].children[1].text
+  end
+
+  # Returns the listing's sale price
+  def self.seller_location(doc)
+    value = doc.css('.location .data').text
+    value != '' ? value : doc.css('.location .txt')[0].children[1].text
+  end
+
+  # Returns the seller's name
+  def self.seller_name(doc)
+    value = doc.css('.offered-by .data').text
+    value != '' ? value : doc.css('.offered-by .txt')[0].children[1].text
+  end
+
+  # Returns the Seller's phone number
+  def seller_phone(doc)
+    phone = doc.css('.seller-info .phone').text
+    phone.reverse!  # alt listing phone has css format 'direction: rtl'
+    phone[0] = '('; phone[4] = ')'
+    phone
+  end
+
+  # Returns the summary listing's title
+  def self.title(doc)
+    doc.css('.name').text  # '2000 JASON 25 Downeaster' (also Grady White, Grady-White, Sea Ray, ...)
+  end
+
   # Returns the year, make, and model from the title string
-  # NOTE: It is assumed that make will be one word. Otherwise, likely need database of make names to match against.
-  def self.split_title(title)
-    title_parts = title.split(' ')
+  # NOTE: It is assumed that Make will be one word.
+  #       Otherwise, likely will need a database of Make names to match against.
+  def self.title_parts(doc)
+    title_parts = title(doc).split(' ')
     year = title_parts[0]  # year
     make = title_parts[1]  # make
     model = title_parts.last(title_parts.size - 2).join(' ')  # model

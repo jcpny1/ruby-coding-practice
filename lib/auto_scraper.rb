@@ -4,24 +4,22 @@ class AutoScraper
   # Creates listings from summary web page
   def self.scrape_results_page(url, url_file, doc, item_class)
     doc.css('.aiResultsWrapper').each { |result|
-      id = get_listing_id(result)
-
-      title = get_title(result)
-      title_parts = split_title(title)  # => [year, make, model]
+      id = listing_id(result)
+      title_parts = title_parts(result)  # => [year, make, model]
 
       description_pod_div = result.css('.aiDescriptionPod')
-      start_date = get_date(description_pod_div)
-      mileage = get_mileage(description_pod_div)
-      price = get_price(description_pod_div)
+      start_date = start_date(description_pod_div)
+      mileage = mileage(description_pod_div)
+      sale_price = sale_price(description_pod_div)
 
-      detail_url = get_detail_url(url, result)
-      condition = get_condition(detail_url)
+      detail_url = detail_url(url, result)
+      condition = condition(detail_url)
       contact_div = result.css('.contactLinks')
-      seller_name = get_seller_name(contact_div)
-      seller_location = get_seller_location(contact_div)
-      seller_phone = get_seller_phone(contact_div, id, url_file)
+      seller_name = seller_name(contact_div)
+      seller_location = seller_location(contact_div)
+      seller_phone = seller_phone(contact_div, id, url_file)
 
-      item = item_class.new(title_parts[0], title_parts[1], title_parts[2], mileage, price, condition, detail_url)
+      item = item_class.new(title_parts[0], title_parts[1], title_parts[2], mileage, sale_price, condition, detail_url)
       seller = Seller.find_or_create(seller_name, seller_location, seller_phone)
       Listing.new(id, item, seller, start_date)
     }
@@ -35,7 +33,7 @@ class AutoScraper
     detail_values['Condition'.to_sym] = condition
     detail_values['Certified'.to_sym] = ''
     # Create the rest from scraping the html's detail attrribute/value table.
-    detail_cells = get_detail_cells(detail_doc)
+    detail_cells = detail_cells(detail_doc)
     index = 0
     while index < detail_cells.size
       if "\u00A0" == detail_cells[index].text  && 'aiCPOiconDetail' == detail_cells[index].children[0].attributes['class'].content
@@ -54,78 +52,79 @@ class AutoScraper
 private
 
   # Returns the item condition, as encoded in the detail page url
-  def self.get_condition(url)
+  def self.condition(url)
     url.match(/[a-z0-9]-(certified|new|used)-[0-9]/)[1].capitalize
   end
 
-  # Returns listing start date
-  def self.get_date(doc)
-    doc.css('.listingDate').text
-  end
-
   # Returns the detail table
-  def self.get_detail_cells(doc)
+  def self.detail_cells(doc)
     doc.css('.aiDetailAdDetails td')
   end
 
   # Returns a summary record's detail page url
-  def self.get_detail_url(url, doc)  # detail link is given as relative to the summary page's domain
+  def self.detail_url(url, doc)  # detail link is given as relative to the summary page's domain
     uri = URI.parse(url)
     "#{uri.scheme}://#{uri.host}#{doc.css('.aiResultTitle h3 a')[0]['href']}"
   end
 
   # Returns the listing's id
-  def self.get_listing_id(doc)  # e.g. from "aiResultsMainDiv547967889"
+  def self.listing_id(doc)  # e.g. from "aiResultsMainDiv547967889"
     doc.css('.aiResultsMainDiv')[0]['id'].match(/\d+/).to_s
   end
 
   # Returns the listing's mileage value
-  def self.get_mileage(doc)
+  def self.mileage(doc)
     value = doc.css('.listingType').text  # e.g. 'Mileage: xx,xxx'
     (value.include? 'Available') ? 'NA' : value.match(/Mileage: (\d*,{,1}\d+)/)[1]
   end
 
   # Returns the listing's sale price
-  def self.get_price(doc)
+  def self.sale_price(doc)
     value = doc.css('.price').text
     (value.include? 'Call') ? 'Call' : value
   end
 
   # Returns the seller's location
-  def self.get_seller_location(doc)
+  def self.seller_location(doc)
     doc.css('strong')[1].text.strip
   end
 
   # Returns the seller's name
-  def self.get_seller_name(doc)
+  def self.seller_name(doc)
     doc.css('strong')[0].text.strip
   end
 
   PHONE_PATTERN = '\(\d\d\d\) \d\d\d-\d\d\d\d'
 
   # Returns the seller's phone number, if it exists
-  def self.get_seller_phone(doc, id, url_file)
+  def self.seller_phone(doc, id, url_file)
     span = doc.css('span')
     match_data = span[0].text.match(/#{PHONE_PATTERN}/) if 1 < span.size
-    match_data != nil ? match_data[0] : get_seller_phone_private(url_file, id)
+    match_data != nil ? match_data[0] : seller_phone_private(url_file, id)
   end
 
   # Returns the seller's phone number, if found in the raw HTML text
-  def self.get_seller_phone_private(url_file, id)
+  def self.seller_phone_private(url_file, id)
     match_data = nil
     open(url_file).detect { |line| match_data = line.match(/#{PHONE_PATTERN}/) if line.include? ('aiGetPhoneNumber'+id) }
     match_data != nil ? match_data[0] : ''
   end
 
+  # Returns listing start date
+  def self.start_date(doc)
+    doc.css('.listingDate').text
+  end
+
   # Returns the summary listing's title
-  def self.get_title(doc)
+  def self.title(doc)
     doc.css('.aiResultTitle h3').text  # '2010 Ford Explorer XL'
   end
 
   # Returns the year, make, and model from the title string
-  # NOTE: It is assumed that make will be one word. Otherwise, likely need database of make names to match against.
-  def self.split_title(title)
-    title_parts = title.split(' ')
+  # NOTE: It is assumed that Make will be one word.
+  #       Otherwise, likely will need a database of Make names to match against.
+  def self.title_parts(doc)
+    title_parts = title(doc).split(' ')
     year = title_parts[0]  # year
     make = title_parts[1]  # make
     model = title_parts.last(title_parts.size - 2).join(' ')  # model

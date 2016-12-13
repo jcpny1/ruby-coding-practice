@@ -18,7 +18,7 @@ class Scraper
   end
 
   # Returns detail attributes and values in detail_values hash
-  def self.get_listing_details(item_class, detail_url, condition, detail_values)
+  def self.listing_details(item_class, detail_url, condition, detail_values)
     case item_class.name
     when 'Automobile'
       AutoScraper.scrape_results_detail_page(detail_url, condition, detail_values)

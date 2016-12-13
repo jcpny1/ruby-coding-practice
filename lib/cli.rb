@@ -7,27 +7,19 @@ class CLI
     user_input = ''
     set_listing_type
 
-    # Display advance loop
-    while true
-      @start_index = @end_index + 1
-      @start_index = 0 if @start_index == Listing.all.size
+    while true  # do CLI Loop
+      @start_index = @end_index + 1  # Advance to next page of listings.
+      @start_index = 0 if @start_index == Listing.all.size  # Go back to beginning if end is reached.
 
-      # Command input loop
-      begin
+      begin  # Command input loop
         @end_index = @start_index + @page_size-1  # if page size changes inside this loop, make adjustments.
         @end_index = Listing.all.size-1 if @end_index >= Listing.all.size
 
-        # Display a page of listings
-        Listing.print_summary(@item_class, @start_index, @end_index) if user_input != 'h'
-
-        # Get user imput
-        user_input = prompt 'Command (or h for help): '
-
-        # Process user input
-        exit if !process_user_input(user_input)
-
+        Listing.print_summary(@item_class, @start_index, @end_index) if user_input != 'h'  # Display a page of listings.
+        user_input = prompt 'Command (or h for help): '  # Get user input.
+        exit if !process_user_input(user_input)          # Process user input.
       end until user_input == ''  # then display next page of summaries.
-    end  # CLI loop
+    end  # do CLI loop
   end
 
   ## PRIVATE METHODS
@@ -57,12 +49,13 @@ class CLI
     when 'q'
       continue_program = false
     else
-      if 0 < user_input.to_i
-        index = user_input.to_i - 1
-        if index > Listing.all.size
-          STDERR.puts red('Invalid selection')
+      item_number = user_input.to_i
+      if 0 < item_number
+        index = item_number - 1
+        if index < Listing.all.size
+          Listing.all[index].print_detail(item_number)
         else
-          Listing.all[index].print_detail(index+1)
+          STDERR.puts red('Invalid selection')
         end
         prompt 'Press Enter to continue...'
       end

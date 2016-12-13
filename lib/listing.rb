@@ -21,14 +21,10 @@ class Listing
 
   # Prints a detail listing for a single item
   def print_detail(item_number)
+    addon_details = {:Phone => @seller.phone, :'Listing #' => @id}
     puts '',
          self.summary_detail_row(item_number),
-         @item.details_to_string
-
-    # display seller phone number if there was no phone number found in the detail listing.
-    puts "#{Listing.fmt_detail_attr('Phone'    )}: #{Listing.fmt_detail_val(@seller.phone)}" if @item.get_detail_phone.nil?
-
-    puts "#{Listing.fmt_detail_attr('Listing #')}: #{Listing.fmt_detail_val(@id)}"
+         @item.details_to_string(addon_details)
   end
 
   # Prints the specified summary listings for the specified item subclass
@@ -49,27 +45,34 @@ class Listing
     result
   end
 
-  # Format a detail attribute
-  def self.fmt_detail_attr(string)
-    "  #{lfmt(string, 12)}"
-  end
-
   MAX_LINE_LENGTH = 100
 
+  # Format a detail attribute
+  def self.fmt_detail_attr(string, width)
+    "#{Listing.lfmt(string, width)}"
+  end
+
+  # Format a detail item
+  def self.format_detail(attr, attr_width, val)
+    "#{fmt_detail_attr(attr, attr_width)}: #{fmt_detail_val(val, attr_width)}"
+  end
+
   # Format a detail value (with wrap if necessary)
-  def self.fmt_detail_val(string)
-    return string if string.size <= MAX_LINE_LENGTH
-    new_string = ''
-    line_len = 0
-    string.split(' ').each { |word|
-      if (line_len += word.size + 1) > MAX_LINE_LENGTH
-        if line_len > (MAX_LINE_LENGTH + 2)               # Allow a word to extend over MAX_LINE_LENGTH a bit to avoid large
-          new_string += "\n  #{self.fmt_detail_attr('')}" # empty spaces on right margin due to large words not quite fitting.
-          line_len = 0
+  def self.fmt_detail_val(string, wrap_indent)
+    new_string = string.lstrip
+    if new_string.size > MAX_LINE_LENGTH
+      new_string = ''
+      line_len = 0
+      string.split(' ').each { |word|
+        if (line_len += word.size + 1) > MAX_LINE_LENGTH
+          if line_len > (MAX_LINE_LENGTH + 2)         # Allow a word to extend over MAX_LINE_LENGTH a bit to avoid large empty spaces on right margin due to large words not quite fitting.
+            new_string += "\n  #{' '*wrap_indent}  "  # Indent for attribute width.
+            line_len = 0
+          end
         end
-      end
-      new_string += "#{word} "
-    }
+        new_string += "#{word} "
+      }
+    end
     new_string
   end
 
