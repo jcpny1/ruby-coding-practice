@@ -1,8 +1,7 @@
-class Seller
-  # .Seller describes the entity that is selling the .Item in a .Listing
+class Seller  # describes the entity that is selling the .Item in a .Listing
   # A seller is uniquely identified by name + location + phone
 
-  @@SUMMARY_COL_FORMATS = [[28,'l'], [32,'l']]  # width, justification
+  @@SUMMARY_COL_FORMATS = [[28,'l'], [32,'l']]  # [width, justification]
 
   @@all_sellers = []
 

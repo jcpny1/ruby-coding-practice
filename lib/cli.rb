@@ -1,18 +1,17 @@
-class CLI
-  # This is the command line interface for the classified app
+class CLI  # is the command line interface for the classified app
 
   # Begin executing command line interface
   def self.run(page_size:10)
     @page_size = page_size
     user_input = ''
-    set_listing_type
+    select_item_type
 
     while true  # do CLI Loop
       @start_index = @end_index + 1  # Advance to next page of listings.
       @start_index = 0 if @start_index == Listing.all.size  # Go back to beginning if end is reached.
 
       begin  # Command input loop
-        @end_index = @start_index + @page_size-1  # if page size changes inside this loop, make adjustments.
+        @end_index = @start_index + @page_size-1  # if page size changes inside this loop, adjust end index.
         @end_index = Listing.all.size-1 if @end_index >= Listing.all.size
 
         Listing.print_summary(@item_class, @start_index, @end_index) if user_input != 'h'  # Display a page of listings.
@@ -29,8 +28,9 @@ class CLI
   def self.display_help
     puts '  To continue scrolling, press Enter.',
          '  For listing detail, enter listing number and press Enter',
-         '  To change listing type, type l and press Enter',
+         '  To change item type, type i and press Enter',
          '  To terminate program, type q and press Enter.',
+#        '  For a seller list, type s and press Enter.',
          '  To display this help, type h and press Enter.'
   end
 
@@ -41,13 +41,15 @@ class CLI
     case user_input
     when 'h'
       display_help
-    when 'l'
-      set_listing_type
+    when 'i'
+      select_item_type
     when 'p'
       tmp_page_size = prompt('Enter new page size: ').to_i
       @page_size = tmp_page_size if 0 < tmp_page_size
     when 'q'
       continue_program = false
+#    when 's'
+#      # list sellers instead of items
     else
       item_number = user_input.to_i
       if 0 < item_number
@@ -74,22 +76,22 @@ class CLI
     "\e[31m#{string}\e[0m"
   end
 
-  def self.set_listing_type
+  def self.select_item_type
     begin
       valid_input = false
 
-      puts 'Available listing types:',
+      puts 'Available item types:',
            '  1. Automobile',
            '  2. Boat'
       user_input = prompt 'Enter your selection number: '
 
       case user_input.to_i
       when 1
-        valid_input = true
+        valid_input  = true
         @item_class  = Automobile
         @summary_url = 'http://long-island-cars.newsday.com/motors/results/car?maxYear=2010&radius=0&min_price=1000&view=List_Detail&sort=Price+desc%2C+Priority+desc&rows=50'
       when 2
-        valid_input = true
+        valid_input  = true
         @item_class  = Boat
         @summary_url = 'http://www.boattrader.com/search-results/NewOrUsed-used/Type-power/Category-all/Zip-10030/Radius-100/Price-5000,150000/Sort-Price:DESC/Page-1,50?'
       else
@@ -97,7 +99,8 @@ class CLI
       end
     end while valid_input == false
 
-    Scraper.create_listings(@summary_url, @item_class)
+    Listing.clear_all
+    Scraper.create_listings(@item_class, @summary_url)
     @start_index =  0  # summary display start item
     @end_index   = -1  # summary display end item
   end

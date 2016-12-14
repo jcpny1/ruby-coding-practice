@@ -1,41 +1,38 @@
-class BoatScraper
-  # .BoatScraper converts Boattrader.com power boat classified listings into objects
+class BoatScraper  # converts Boattrader.com power boat classified listings into objects
+  # Currently coded for BoatTrader.com only
 
   # Creates listings from summary web page
-  def self.scrape_results_page(url, url_file, doc, item_class)
-    doc.css('.boat-listings li').each { |result|
+  def self.scrape_results_page(results_url, results_url_file, results_doc, item_class)
+    results_doc.css('.boat-listings li').each { |result|
       id = listing_id(result)
       next if id.nil?
 
       descr_div = result.css('.description')
-      title_parts = title_parts(descr_div)  # => [year, make, model]
-      start_date = ''  # Listing start_date not available.
-
-
+      title_parts = split_title(descr_div)  # => [year, make, model]
+      start_date = ''  # Listing start_date currently not available from web page.
       sale_price = sale_price(descr_div)
-      seller_location = seller_location(descr_div)
       seller_name = seller_name(descr_div)
-      detail_url = detail_url(url, result)
-      condition = 'Used'
+      seller_location = seller_location(descr_div)
+      seller_phone = ''  # Seller phone currently not available from web page.
 
-      item = item_class.new(title_parts[0], title_parts[1], title_parts[2], sale_price, condition, detail_url)
-      seller = Seller.find_or_create(seller_name, seller_location, '')  # Seller phone only available in details.
+      detail_url = detail_url(results_url, result)
+      item_condition = 'Used'  # Condition currently not available from web page.
+
+      item = item_class.new(title_parts[0], title_parts[1], title_parts[2], sale_price, item_condition, detail_url)
+      seller = Seller.find_or_create(seller_name, seller_location, seller_phone)
       Listing.new(id, item, seller, start_date)
     }
   end
 
   # Returns detail attributes and values in detail_values hash
-  def self.scrape_results_detail_page(detail_url, condition, detail_values)
-    detail_doc = Nokogiri::HTML(open(detail_url, :read_timeout=>10))
+  def self.scrape_results_detail_page(detail_doc, item_condition, detail_values)
     boat_details_doc = detail_doc.css('.boat-details')
 
     if boat_details_doc.empty?
-      do_alt_processing(detail_doc, condition, detail_values)
+      do_alt_processing(detail_doc, item_condition, detail_values)
     else
-      do_normal_processing(detail_doc, boat_details_doc, condition, detail_values)
+      do_normal_processing(detail_doc, boat_details_doc, item_condition, detail_values)
     end
-
-    detail_values['Phone'.to_sym] = detail_doc.css('.phone').text  # NOTE: keep phone number last in list for display consistency.
   end
 
 ## PRIVATE METHODS
@@ -46,6 +43,11 @@ private
     doc.css('#collapsible-content-areas tr')
   end
 
+  # Returns the detail table
+  def self.detail_cells_alt(doc)
+    doc.css('#ad_detail-table tr')
+  end
+
   # Returns a summary record's detail page url
   def self.detail_url(url, doc)  # detail link is given as relative to the summary page's domain
     uri = URI.parse(url)
@@ -53,50 +55,57 @@ private
   end
 
   # Returns detail attributes and values in detail_values hash
-  def self.do_alt_processing(doc, condition, detail_values)
+  def self.do_alt_processing(doc, item_condition, detail_values)
     # Create some entries manually.
     main_content = doc.css('#main-content')
     detail_values['Description'.to_sym] = main_content.css('p').text.strip
-    detail_values['Condition'.to_sym] = condition
+    detail_values['Condition'.to_sym] = item_condition
 
     # Create the rest from scraping the html's detail attrribute/value table.
-    detail_cells = main_content.css('#ad_detail-table tr')
-
+    detail_cells = detail_cells_alt(main_content)
     (0...detail_cells.size).each { |index|
       dl_tag = detail_cells[index].children
-      child = 0
-      while child < dl_tag.size
+      (0...dl_tag.size).step(2) { |child|
         attribute = dl_tag[child].text
-        value     = dl_tag[child+1].text
+        value = dl_tag[child+1].text
         detail_values[attribute.to_sym] = value
-        child += 2
-      end
+      }
     }
 
     detail_values['Phone'.to_sym] = seller_phone(main_content)  # NOTE: keep phone number last in list for display consistency.
   end
 
   # Returns detail attributes and values in detail_values hash
-  def self.do_normal_processing(doc, boat_doc, condition, detail_values)
+  def self.do_normal_processing(doc, boat_doc, item_condition, detail_values)
     # Create some entries manually.
     detail_values['Description'.to_sym] = doc.css('#main-details').text.strip
-    detail_values['Condition'.to_sym] = condition
+    detail_values['Condition'.to_sym] = item_condition
 
     # Create the rest from scraping the html's detail attrribute/value table.
     detail_cells = detail_cells(boat_doc)
     (0...detail_cells.size).each { |index|
       attribute_tag = detail_cells[index].children[1]
-      if attribute_tag
-        attribute = attribute_tag.text
-        value_tag = detail_cells[index].children[3]
-      end
 
-      if value_tag.nil?
-        process_detail_list(detail_cells[index].css('dl').children, detail_values)
-      else
-        process_detail_table(attribute, value_tag.text, detail_values)
+      if attribute_tag
+        dl_tag = attribute_tag.css('dl')
+
+        if 0 < dl_tag.size  # need to do alternate normal processing.
+          process_detail_list_alt(dl_tag, detail_values)
+        else
+          attribute = attribute_tag.text
+          value_tag = detail_cells[index].children[3]
+
+          if value_tag
+            text_value = (attribute == 'Owner Video' ? 'Yes' : value_tag.text)  # substitute Yes for the video link.
+            detail_values[attribute.to_sym] = text_value
+          else
+            process_detail_list(detail_cells[index].css('dl').children, detail_values)
+          end
+        end
       end
     }
+
+    detail_values['Phone'.to_sym] = doc.css('.phone').text  # NOTE: keep phone number last in list for display consistency.
   end
 
   # Returns the listing's id. If the listing doesn't have an id, it's not really a listing.
@@ -107,22 +116,32 @@ private
 
   # Parse description list data into hash
   def self.process_detail_list(doc, detail_values)
-    child = 0
-    while child < doc.size
-      attribute = doc[child+1]
-      if attribute
-        attribute = doc[child+1].text
-        value_tag = doc[child+3]
-        detail_values[attribute.to_sym] = value_tag.text if value_tag
-      end
-      child += 4
-    end
+    (0...doc.size).step(4) { |index|
+      attribute = doc[index+1]
+      next if attribute.nil?
+      attr_text = attribute.text
+      value_tag = doc[index+3]
+      detail_values[attr_text.to_sym] = value_tag.text if value_tag
+    }
   end
 
-  # Parse table row data into hash
-  def self.process_detail_table(attribute, value, detail_values)
-    value = 'Yes' if attribute == 'Owner Video'  # substitute Yes for the video link.
-    detail_values[attribute.to_sym] = value
+  # Parse description list data into hash
+  def self.process_detail_list_alt(doc, detail_values)
+    (0...doc.size).each { |index|
+      children = doc[index].children
+      child_index = 1
+      while child_index < children.size
+        attribute = children[child_index].text
+        value = children[child_index+2]
+        if value.nil? || value.text.strip.size == 0
+          value = children[child_index+1]
+          child_index += 3
+        else
+          child_index += 4
+        end
+        detail_values[attribute.to_sym] = value.text.sub('&check;', 'Y') if value
+      end
+    }
   end
 
   # Returns the listing's sale price
@@ -131,7 +150,7 @@ private
     value != '' ? value : doc.css('.price .txt')[0].children[1].text
   end
 
-  # Returns the listing's sale price
+  # Returns the seller's address
   def self.seller_location(doc)
     value = doc.css('.location .data').text
     value != '' ? value : doc.css('.location .txt')[0].children[1].text
@@ -151,19 +170,19 @@ private
     phone
   end
 
+    # Returns the year, make, and model from the title string
+    # NOTE: It is assumed that Make will be one word.
+    #       Otherwise, likely will need a database of Make names to match against.
+    def self.split_title(doc)
+      title_parts = title(doc).split(' ')
+      year = title_parts[0]  # year
+      make = title_parts[1]  # make
+      model = title_parts.last(title_parts.size - 2).join(' ')  # model
+      [year, make, model]
+    end
+
   # Returns the summary listing's title
   def self.title(doc)
     doc.css('.name').text  # '2000 JASON 25 Downeaster' (also Grady White, Grady-White, Sea Ray, ...)
-  end
-
-  # Returns the year, make, and model from the title string
-  # NOTE: It is assumed that Make will be one word.
-  #       Otherwise, likely will need a database of Make names to match against.
-  def self.title_parts(doc)
-    title_parts = title(doc).split(' ')
-    year = title_parts[0]  # year
-    make = title_parts[1]  # make
-    model = title_parts.last(title_parts.size - 2).join(' ')  # model
-    [year, make, model]
   end
 end

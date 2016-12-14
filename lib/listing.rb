@@ -1,5 +1,4 @@
-class Listing
-  # .Listing describes a classified advertisement
+class Listing  # describes a classified advertisement
   # A Listing has one item and one seller, along with listing-based attributes such as the listing start date
 
   @@all_listings = []
@@ -13,10 +12,10 @@ class Listing
   end
 
   # Empty list of created objects
-  def self.clear
+  def self.clear_all
     Item.clear
     Seller.clear
-    all.clear
+    Listing.clear
   end
 
   # Prints a detail listing for a single item
@@ -41,7 +40,7 @@ class Listing
   # Formats an array of strings according to an array of formats
   def self.fmt_cols(values, formats)
     result = ''
-    values.each_with_index { |value, index| result += "#{Listing.fmt_col(value, formats[index][0], formats[index][1])} " }
+    values.each_with_index { |value, index| result << "#{Listing.fmt_col(value, formats[index][0], formats[index][1])} " }
     result
   end
 
@@ -59,18 +58,17 @@ class Listing
 
   # Format a detail value (with wrap if necessary)
   def self.fmt_detail_val(string, wrap_indent)
-    new_string = string.lstrip
+    new_string = string.strip
     if new_string.size > MAX_LINE_LENGTH
       new_string = ''
+      new_line = "\n  #{' '*wrap_indent}  "  # Indent size of Attribute display width.
       line_len = 0
       string.split(' ').each { |word|
+        new_string << "#{word} "
         if (line_len += word.size + 1) > MAX_LINE_LENGTH
-          if line_len > (MAX_LINE_LENGTH + 2)         # Allow a word to extend over MAX_LINE_LENGTH a bit to avoid large empty spaces on right margin due to large words not quite fitting.
-            new_string += "\n  #{' '*wrap_indent}  "  # Indent for attribute width.
-            line_len = 0
-          end
+          new_string << new_line
+          line_len = 0
         end
-        new_string += "#{word} "
       }
     end
     new_string
@@ -79,9 +77,14 @@ class Listing
   ## PRIVATE METHODS
   private
 
-  # Return array of listings of given item_class
+  # Returns array of all listings
   def self.all
     @@all_listings
+  end
+
+  # Empty list of created objects
+  def self.clear
+    all.clear
   end
 
   # Format a column
