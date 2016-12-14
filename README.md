@@ -1,18 +1,16 @@
-# Classifieds
+# classifieds-cli-app
 
 Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/classifieds`. To experiment with that code, run `bin/console` for an interactive prompt.
 
-Display classified ads from the current online edition of Newsday.
-Designed to meet the requirements of the learn.co CLI Data Gem Project.
-
-TODO: Delete this and the text above, and describe your gem
+Display classified ads from the current online edition of Newsday.com and BoatTrader.com.
+This gem was created to meet the requirements of the learn.co CLI Data Gem Project.
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'classifieds'
+gem 'classifieds-cli-app'
 ```
 
 And then execute:
@@ -21,11 +19,11 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install classifieds
+    $ gem install classifieds-cli-app
 
 ## Usage
 
-TODO: Write usage instructions here
+$ classifieds
 
 ## Development
 

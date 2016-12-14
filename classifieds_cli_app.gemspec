@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'classifieds/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "classifieds"
+  spec.name          = "classifieds_cli_app"
   spec.version       = Classifieds::VERSION
   spec.authors       = ["John Pfingst"]
   spec.email         = ["jpfingst@outlook.com"]
@@ -12,8 +12,9 @@ Gem::Specification.new do |spec|
 
   spec.summary       = %q{Classified Listings Display}
   spec.description   = %q{Scrapes online classifieds ads and provides a command line interface with which to view them.}
-  spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.homepage      = "http://rubygems.org/gems/classifieds_cli_app"
   spec.license       = "MIT"
+  spec.executables << 'classifieds'
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
