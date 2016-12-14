@@ -1,4 +1,4 @@
-class Listing  # describes a classified advertisement
+class Classifieds::Listing  # describes a classified advertisement
   # A Listing has one item and one seller, along with listing-based attributes such as the listing start date
 
   @@all_listings = []
@@ -8,14 +8,14 @@ class Listing  # describes a classified advertisement
     @item = item
     @seller = seller
     @start_date = start_date
-    Listing.all << self
+    Classifieds::Listing.all << self
   end
 
   # Empty list of created objects
   def self.clear_all
-    Item.clear
-    Seller.clear
-    Listing.clear
+    Classifieds::Item.clear
+    Classifieds::Seller.clear
+    self.clear
   end
 
   # Prints a detail listing for a single item
@@ -28,19 +28,32 @@ class Listing  # describes a classified advertisement
 
   # Prints the specified summary listings for the specified item subclass
   def self.print_summary(item_class, start_index, end_index)
-    puts "    #{item_class.summary_header} #{Seller.summary_header} #{Listing.lfmt('List Date', 10)}"
+    puts "    #{item_class.summary_header} #{Classifieds::Seller.summary_header} #{lfmt('List Date', 10)}"
     all[start_index..end_index].each_with_index { |listing, index| puts listing.summary_detail_row(start_index+index+1) }
+  end
+
+  # Creates listings from summary web page
+  def self.scrape_listings(item_class, results_url)
+    results_url_file = open(results_url, :read_timeout=>10)
+    results_doc = Nokogiri::HTML(results_url_file)
+    item_class.scrape_results_page(results_url, results_url_file, results_doc)
+  end
+
+  # Returns detail attributes and values in detail_values hash
+  def self.scrape_listing_details(item_class, detail_url, item_condition, detail_values)
+    detail_doc = Nokogiri::HTML(open(detail_url, :read_timeout=>10))
+    item_class.scrape_results_detail_page(detail_doc, item_condition, detail_values)
   end
 
   # Prints a summary detail row
   def summary_detail_row(item_number)
-    "#{(item_number).to_s.rjust(2)}. #{@item.summary_detail} #{@seller.summary_detail} #{Listing.lfmt(@start_date, 10)}"
+    "#{(item_number).to_s.rjust(2)}. #{@item.summary_detail} #{@seller.summary_detail} #{Classifieds::Listing.lfmt(@start_date, 10)}"
   end
 
   # Formats an array of strings according to an array of formats
   def self.fmt_cols(values, formats)
     result = ''
-    values.each_with_index { |value, index| result << "#{Listing.fmt_col(value, formats[index][0], formats[index][1])} " }
+    values.each_with_index { |value, index| result << "#{fmt_col(value, formats[index][0], formats[index][1])} " }
     result
   end
 
@@ -48,7 +61,7 @@ class Listing  # describes a classified advertisement
 
   # Format a detail attribute
   def self.fmt_detail_attr(string, width)
-    "#{Listing.lfmt(string, width)}"
+    "#{lfmt(string, width)}"
   end
 
   # Format a detail item

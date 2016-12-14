@@ -1,5 +1,7 @@
-class AutoScraper  # converts automobile classified listings into objects
+class Classifieds::AutoScraper  # converts automobile classified listings into objects
   # Currently coded for Newsday.com only
+
+  private_class_method :new
 
   # Creates listings from summary web page
   def self.scrape_results_page(results_url, results_url_file, results_doc, item_class)
@@ -21,8 +23,8 @@ class AutoScraper  # converts automobile classified listings into objects
       item_condition = item_condition(detail_url)
 
       item = item_class.new(title_parts[0], title_parts[1], title_parts[2], mileage, sale_price, item_condition, detail_url)
-      seller = Seller.find_or_create(seller_name, seller_location, seller_phone)
-      Listing.new(id, item, seller, start_date)
+      seller = Classifieds::Seller.find_or_create(seller_name, seller_location, seller_phone)
+      Classifieds::Listing.new(id, item, seller, start_date)
     }
   end
 

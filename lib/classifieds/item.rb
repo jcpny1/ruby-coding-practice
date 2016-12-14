@@ -1,4 +1,4 @@
-class Item  # describes the thing in a listing that is for sale
+class Classifieds::Item  # describes the thing in a listing that is for sale
   # It is expected to be subclassed based on the type of item for sale (e.g., vehicle, clothing, furniture, etc.)
   # To improve response time, an item's detail_values are only loaded on demand (from the detail url)
 
@@ -19,7 +19,7 @@ class Item  # describes the thing in a listing that is for sale
 
   # Return an item's detail data formatted for display
   def details_to_string(addon_details)
-    Scraper.listing_details(self.class, @detail_url, @condition, @detail_values) if @detail_values.empty?
+    Classifieds::Listing.scrape_listing_details(self.class, @detail_url, @condition, @detail_values) if @detail_values.empty?
 
     detail_values_array = @detail_values.to_a
     addon_details.delete(:Phone) if detail_phone  # do not use seller phone if item details has a phone.
@@ -33,7 +33,7 @@ class Item  # describes the thing in a listing that is for sale
       # column 1
       attribute = detail_values_array[index][0].to_s
       value = detail_values_array[index][1]
-      result << "  #{Listing.format_detail(attribute, attr_width(1), value).ljust(col1_ljust)}"
+      result << "  #{Classifieds::Listing.format_detail(attribute, attr_width(1), value).ljust(col1_ljust)}"
 
       # column 2
       if 'Description' == attribute.to_s  # Have Description be on its own line.
@@ -41,7 +41,7 @@ class Item  # describes the thing in a listing that is for sale
       elsif (index + offset) < detail_values_array.size
         attribute = detail_values_array[index+offset][0].to_s
         value = detail_values_array[index+offset][1]
-        result << "#{Listing.format_detail(attribute, attr_width(2), value)}\n"
+        result << "#{Classifieds::Listing.format_detail(attribute, attr_width(2), value)}\n"
       end
     }
     result
@@ -61,7 +61,7 @@ class Item  # describes the thing in a listing that is for sale
       attribute = detail_values_array[index][0].to_s
       next if 'Description' == attribute  # Description spans all cols, so don't count its width.
       value = detail_values_array[index][1]
-      detail_width = Listing.format_detail(attribute, attr_width(1), value).size
+      detail_width = Classifieds::Listing.format_detail(attribute, attr_width(1), value).size
       max_width = detail_width if detail_width > max_width
     }
     max_width

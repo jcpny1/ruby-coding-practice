@@ -1,3 +1,3 @@
 #!/usr/bin/env ruby
 require_relative '../config/environment'
-CLI.run(page_size:3)
+Classifieds::CLI.new.run(page_size:3)

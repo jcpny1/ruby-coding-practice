@@ -1,5 +1,7 @@
-class BoatScraper  # converts Boattrader.com power boat classified listings into objects
+class Classifieds::BoatScraper  # converts Boattrader.com power boat classified listings into objects
   # Currently coded for BoatTrader.com only
+
+  private_class_method :new
 
   # Creates listings from summary web page
   def self.scrape_results_page(results_url, results_url_file, results_doc, item_class)
@@ -19,8 +21,8 @@ class BoatScraper  # converts Boattrader.com power boat classified listings into
       item_condition = 'Used'  # Condition currently not available from web page.
 
       item = item_class.new(title_parts[0], title_parts[1], title_parts[2], sale_price, item_condition, detail_url)
-      seller = Seller.find_or_create(seller_name, seller_location, seller_phone)
-      Listing.new(id, item, seller, start_date)
+      seller = Classifieds::Seller.find_or_create(seller_name, seller_location, seller_phone)
+      Classifieds::Listing.new(id, item, seller, start_date)
     }
   end
 
