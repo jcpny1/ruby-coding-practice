@@ -60,7 +60,7 @@ private
   def self.do_alt_processing(doc, item_condition, detail_values)
     # Create some entries manually.
     main_content = doc.css('#main-content')
-    detail_values['Description'.to_sym] = main_content.css('p').text.strip
+    detail_values['Description'.to_sym] = main_content.css('p').text.strip  # Description must be first attribute.
     detail_values['Condition'.to_sym] = item_condition
 
     # Create the rest from scraping the html's detail attrribute/value table.
@@ -68,7 +68,7 @@ private
     (0...detail_cells.size).each { |index|
       dl_tag = detail_cells[index].children
       (0...dl_tag.size).step(2) { |child|
-        attribute = dl_tag[child].text
+        attribute = dl_tag[child].text.chomp(':')
         value = dl_tag[child+1].text
         detail_values[attribute.to_sym] = value
       }
@@ -94,7 +94,7 @@ private
         if 0 < dl_tag.size  # need to do alternate normal processing.
           process_detail_list_alt(dl_tag, detail_values)
         else
-          attribute = attribute_tag.text
+          attribute = attribute_tag.text.chomp(':')
           value_tag = detail_cells[index].children[3]
 
           if value_tag
@@ -121,7 +121,7 @@ private
     (0...doc.size).step(4) { |index|
       attribute = doc[index+1]
       next if attribute.nil?
-      attr_text = attribute.text
+      attr_text = attribute.text.chomp(':')
       value_tag = doc[index+3]
       detail_values[attr_text.to_sym] = value_tag.text if value_tag
     }
@@ -133,7 +133,7 @@ private
       children = doc[index].children
       child_index = 1
       while child_index < children.size
-        attribute = children[child_index].text
+        attribute = children[child_index].text.chomp(':')
         value = children[child_index+2]
         if value.nil? || value.text.strip.size == 0
           value = children[child_index+1]

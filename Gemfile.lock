@@ -1,8 +1,8 @@
 PATH
   remote: .
   specs:
-    classifieds (0.1.0)
-      nokogiri
+    classifieds_cli_app (0.1.1)
+      nokogiri (~> 1.6)
 
 GEM
   remote: https://rubygems.org/
@@ -24,8 +24,8 @@ PLATFORMS
 
 DEPENDENCIES
   bundler (~> 1.13)
-  classifieds!
-  pry
+  classifieds_cli_app!
+  pry (~> 0)
   rake (~> 10.0)
 
 BUNDLED WITH

@@ -31,7 +31,7 @@ class Classifieds::AutoScraper  # converts automobile classified listings into o
   # Returns detail attributes and values in detail_values hash
   def self.scrape_results_detail_page(detail_doc, item_condition, detail_values)
     # Create some entries manually.
-    detail_values['Description'.to_sym] = detail_doc.css('.aiDetailsDescription')[0].children[2].text.strip
+    detail_values['Description'.to_sym] = detail_doc.css('.aiDetailsDescription')[0].children[2].text.strip  # Description must be first attribute.
     detail_values['Condition'.to_sym] = item_condition
     detail_values['Certified'.to_sym] = ''
     # Create the rest from scraping the html's detail attrribute/value table.

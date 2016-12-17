@@ -28,7 +28,7 @@ class Classifieds::Listing  # describes a classified advertisement
 
   # Prints the specified summary listings for the specified item subclass
   def self.print_summary(item_class, start_index, end_index)
-    puts "    #{item_class.summary_header} #{Classifieds::Seller.summary_header} #{lfmt('List Date', 10)}"
+    puts "    #{item_class.summary_header}  #{Classifieds::Seller.summary_header}  #{lfmt('List Date', 10)}"
     all[start_index..end_index].each_with_index { |listing, index| puts listing.summary_detail_row(start_index+index+1) }
   end
 
@@ -47,30 +47,30 @@ class Classifieds::Listing  # describes a classified advertisement
 
   # Prints a summary detail row
   def summary_detail_row(item_number)
-    "#{(item_number).to_s.rjust(2)}. #{@item.summary_detail} #{@seller.summary_detail} #{Classifieds::Listing.lfmt(@start_date, 10)}"
+    "#{(item_number).to_s.rjust(2)}. #{@item.summary_detail}  #{@seller.summary_detail}  #{Classifieds::Listing.lfmt(@start_date, 10)}"
   end
 
   # Formats an array of strings according to an array of formats
-  def self.fmt_cols(values, formats)
+  def self.format_cols(values, formats)
     result = ''
-    values.each_with_index { |value, index| result << "#{fmt_col(value, formats[index][0], formats[index][1])} " }
+    values.each_with_index { |value, index| result << "#{format_col(value, formats[index][0], formats[index][1])} " }
     result
   end
 
   MAX_LINE_LENGTH = 100
 
   # Format a detail attribute
-  def self.fmt_detail_attr(string, width)
+  def self.format_detail_attr(string, width)
     "#{lfmt(string, width)}"
   end
 
   # Format a detail item
   def self.format_detail(attr, attr_width, val)
-    "#{fmt_detail_attr(attr, attr_width)}: #{fmt_detail_val(val, attr_width)}"
+    "#{format_detail_attr(attr, attr_width)}: #{format_detail_val(val, attr_width)}"
   end
 
   # Format a detail value (with wrap if necessary)
-  def self.fmt_detail_val(string, wrap_indent)
+  def self.format_detail_val(string, wrap_indent)
     new_string = string.strip
     if new_string.size > MAX_LINE_LENGTH
       new_string = ''
@@ -101,7 +101,7 @@ class Classifieds::Listing  # describes a classified advertisement
   end
 
   # Format a column
-  def self.fmt_col(str, width, justify)
+  def self.format_col(str, width, justify)
     case justify
     when 'l'
       "#{lfmt(str, width)}"
@@ -114,7 +114,7 @@ class Classifieds::Listing  # describes a classified advertisement
 
   # Left justify string and pad or trim to size
   def self.lfmt(string, size)
-    string.slice(0,size).ljust(size)
+    size == 0 ? string : string.slice(0,size).ljust(size)
   end
 
   # Right justify string and pad or trim to size

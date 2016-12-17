@@ -1,7 +1,7 @@
 class Classifieds::Seller  # describes the entity that is selling the .Item in a .Listing
   # A seller is uniquely identified by name + location + phone
 
-  @@SUMMARY_COL_FORMATS = [[28,'l'], [32,'l']]  # [width, justification]
+  SUMMARY_COL_FORMATS = [[28,'l'], [32,'l']]  # [width, justification]
 
   @@all_sellers = []
 
@@ -34,12 +34,12 @@ class Classifieds::Seller  # describes the entity that is selling the .Item in a
 
   # Return a summary listing detail row
   def summary_detail
-    Classifieds::Listing.fmt_cols([@name, @location], @@SUMMARY_COL_FORMATS)
+    Classifieds::Listing.format_cols([@name, @location], SUMMARY_COL_FORMATS)
   end
 
   # Return the summary listing summary title row
   def self.summary_header
-    Classifieds::Listing.fmt_cols(['Seller', 'Location'], @@SUMMARY_COL_FORMATS)
+    Classifieds::Listing.format_cols(['Seller', 'Location'], SUMMARY_COL_FORMATS)
   end
 
   ## PRIVATE METHODS

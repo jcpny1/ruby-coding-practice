@@ -12,7 +12,7 @@ class Classifieds::Item  # describes the thing in a listing that is for sale
 
   # Empty list of created objects
   def self.clear
-    # all.clear
+    # all.clear  # not used, for now.
   end
 
   COLUMN_SEPARATION = 5
@@ -21,49 +21,74 @@ class Classifieds::Item  # describes the thing in a listing that is for sale
   def details_to_string(addon_details)
     Classifieds::Listing.scrape_listing_details(self.class, @detail_url, @condition, @detail_values) if @detail_values.empty?
 
+    # Setup attribute/value details array
     detail_values_array = @detail_values.to_a
-    addon_details.delete(:Phone) if detail_phone  # do not use seller phone if item details has a phone.
+    addon_details.delete(:Phone) if detail_phone?  # do not addon phone if item details has a phone.
     detail_values_array.concat(addon_details.to_a)
-    offset = detail_values_array.size / 2 # prepare for two column output.
-    mod2 = detail_values_array.size % 2   # and account for an odd number of details.
-    col1_ljust = max_col1_width(detail_values_array, offset+mod2) + COLUMN_SEPARATION
-    result = ''
+    col2_offset = ((detail_values_array.size-1) / 2) + ((detail_values_array.size-1) % 2) # remove 1 from array size for description. It will get its own row.
 
-    (0...offset+mod2).each { |index|
-      # column 1
-      attribute = detail_values_array[index][0].to_s
-      value = detail_values_array[index][1]
-      result << "  #{Classifieds::Listing.format_detail(attribute, attr_width(1), value).ljust(col1_ljust)}"
+    col_attr_width = []
+    col_width = []
 
-      # column 2
-      if 'Description' == attribute.to_s  # Have Description be on its own line.
-        result << "\n"
-      elsif (index + offset) < detail_values_array.size
-        attribute = detail_values_array[index+offset][0].to_s
-        value = detail_values_array[index+offset][1]
-        result << "#{Classifieds::Listing.format_detail(attribute, attr_width(2), value)}\n"
-      end
+    # Calculate column 1 widths
+    widths = max_col_widths(detail_values_array, 0, col2_offset)  # [max_attr_width, max_val_width, max_column_width]
+    col_attr_width[0] = widths[0]
+    col_width[0] = [widths[2], Classifieds::Item.col_width_limit(1)].min  # limit col width to max col width
+    col_width[0] += COLUMN_SEPARATION
+
+    # Calculate column 2 widths
+    widths = max_col_widths(detail_values_array, col2_offset+1, detail_values_array.size)  # [max_attr_width, max_val_width, max_column_width]
+    col_attr_width[1] = widths[0]
+    col_width[1] = [widths[2], Classifieds::Item.col_width_limit(2)].min  # limit col width to max col width
+
+    # Description value spans all columns.
+    attribute = detail_values_array[0][0].to_s
+    value = detail_values_array[0][1]
+    result = "  #{Classifieds::Listing.format_detail(attribute, col_attr_width[0], value)}\n"
+
+    # Then display remaining details in two column format.
+    (1..col2_offset).each { |index|
+      result << "  #{Classifieds::Item.format_pair(detail_values_array, index,             col_attr_width[0], col_width[0])}"
+      next if (index+col2_offset) == detail_values_array.size  # when odd number of details.
+      result << "  #{Classifieds::Item.format_pair(detail_values_array, index+col2_offset, col_attr_width[1], col_width[1])}\n"
     }
     result
-  end
-
-  def detail_phone
-    @detail_values[:Phone]
   end
 
   ## PRIVATE METHODS
   private
 
-  # Find width of widest col1 data
-  def max_col1_width(detail_values_array, end_val)
-    max_width = 0
-    (0...end_val).each { |index|
+  # Return attribute field width for given column
+  def self.col_width_limit(col)
+    [40, 40][col-1]
+  end
+
+  # Do the details contain a phone entry?
+  def detail_phone?
+    @detail_values[:Phone] ? true : false
+  end
+
+  # Formats an attribute/value pair for printing
+  def self.format_pair(array, index, attr_width, col_width)
+    attribute = array[index][0].to_s
+    value = array[index][1]
+    Classifieds::Listing.format_detail(attribute, attr_width, value).slice(0,col_width).ljust(col_width)
+  end
+
+  # Find widths of widest column data
+  # Returns [max_attr_width, max_val_width, max_column_width]
+  def max_col_widths(detail_values_array, start_index, end_index)
+    max_attr_width = 0
+    max_val_width = 0
+    (start_index...end_index).each { |index|
       attribute = detail_values_array[index][0].to_s
-      next if 'Description' == attribute  # Description spans all cols, so don't count its width.
+      width = Classifieds::Listing.format_detail_attr(attribute, 0).size
+      max_attr_width = width if width > max_attr_width
+      next if 'Description' == attribute  # Description spans all cols, so don't consider its value width.
       value = detail_values_array[index][1]
-      detail_width = Classifieds::Listing.format_detail(attribute, attr_width(1), value).size
-      max_width = detail_width if detail_width > max_width
+      width = Classifieds::Listing.format_detail_val(value, 0).size
+      max_val_width = width if width > max_val_width
     }
-    max_width
+    [max_attr_width, max_val_width, max_attr_width + max_val_width + ': '.size]
   end
 end

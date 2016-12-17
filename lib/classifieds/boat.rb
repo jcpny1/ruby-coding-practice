@@ -1,15 +1,9 @@
 class Classifieds::Boat < Classifieds::Vehicle  # describes a Vehicle type of: Boat
 
-  @@ATTR_COLUMN_WIDTHS  = [15, 14]
-  @@SUMMARY_COL_FORMATS = [[24,'l'], [8,'r']]  # [width, justification]
+  SUMMARY_COL_FORMATS = [[32,'l'], [9,'r']]  # [width, justification]
 
   def initialize(year, make, model, price, condition, detail_link)
     super(year, make, model, price, condition, detail_link)
-  end
-
-  # Return attribute field width for given column
-  def attr_width(col)
-    @@ATTR_COLUMN_WIDTHS[col-1]
   end
 
   # Creates listings from summary web page
@@ -24,11 +18,11 @@ class Classifieds::Boat < Classifieds::Vehicle  # describes a Vehicle type of: B
 
   # Returns a summary listing data row
   def summary_detail
-    Classifieds::Listing.fmt_cols([@title, @price], @@SUMMARY_COL_FORMATS)
+    Classifieds::Listing.format_cols([@title, @price], SUMMARY_COL_FORMATS)
   end
 
   # Returns the summary listing title row
   def self.summary_header
-    Classifieds::Listing.fmt_cols(['Boat', 'Price '], @@SUMMARY_COL_FORMATS)
+    Classifieds::Listing.format_cols(['Boat', 'Price '], SUMMARY_COL_FORMATS)
   end
 end
