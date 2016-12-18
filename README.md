@@ -3,6 +3,10 @@
 Display classified ads from the current online edition of Newsday.com and BoatTrader.com.
 This gem was created to meet the requirements of the learn.co CLI Data Gem Project.
 
+  0.1.1  Initial release.
+  0.1.2  Improved column display formatting.
+  0.1.3  Improved use of Nokogiri methods.
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -13,15 +17,15 @@ gem 'classifieds-cli-app'
 
 And then execute:
 
-    $ bundle
+  `$ bundle`
 
 Or install it yourself as:
 
-    $ gem install classifieds-cli-app
+  `$ gem install classifieds-cli-app`
 
 ## Usage
 
-$ classifieds
+  `$ classifieds`
 
 ## Development
 

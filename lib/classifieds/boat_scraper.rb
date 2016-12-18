@@ -9,7 +9,7 @@ class Classifieds::BoatScraper  # converts Boattrader.com power boat classified 
       id = listing_id(result)
       next if id.nil?
 
-      descr_div = result.css('.description')
+      descr_div = result.at_css('.description')
       title_parts = split_title(descr_div)  # => [year, make, model]
       start_date = ''  # Listing start_date currently not available from web page.
       sale_price = sale_price(descr_div)
@@ -53,14 +53,14 @@ private
   # Returns a summary record's detail page url
   def self.detail_url(url, doc)  # detail link is given as relative to the summary page's domain
     uri = URI.parse(url)
-    "#{uri.scheme}://#{uri.host}#{doc.css('.inner a')[0]['href']}"
+    "#{uri.scheme}://#{uri.host}#{doc.at_css('.inner a')['href']}"
   end
 
   # Returns detail attributes and values in detail_values hash
   def self.do_alt_processing(doc, item_condition, detail_values)
     # Create some entries manually.
-    main_content = doc.css('#main-content')
-    detail_values['Description'.to_sym] = main_content.css('p').text.strip  # Description must be first attribute.
+    main_content = doc.at_css('#main-content')
+    detail_values['Description'.to_sym] = main_content.at_css('p').text.strip  # Description must be first attribute.
     detail_values['Condition'.to_sym] = item_condition
 
     # Create the rest from scraping the html's detail attrribute/value table.
@@ -80,7 +80,7 @@ private
   # Returns detail attributes and values in detail_values hash
   def self.do_normal_processing(doc, boat_doc, item_condition, detail_values)
     # Create some entries manually.
-    detail_values['Description'.to_sym] = doc.css('#main-details').text.strip
+    detail_values['Description'.to_sym] = doc.at_css('#main-details').text.strip
     detail_values['Condition'.to_sym] = item_condition
 
     # Create the rest from scraping the html's detail attrribute/value table.
@@ -95,7 +95,7 @@ private
           process_detail_list_alt(dl_tag, detail_values)
         else
           attribute = attribute_tag.text.chomp(':')
-          value_tag = detail_cells[index].children[3]
+          value_tag = detail_cells[index].at_css('td')
 
           if value_tag
             text_value = (attribute == 'Owner Video' ? 'Yes' : value_tag.text)  # substitute Yes for the video link.
@@ -107,7 +107,7 @@ private
       end
     }
 
-    detail_values['Phone'.to_sym] = doc.css('.phone').text  # NOTE: keep phone number last in list for display consistency.
+    detail_values['Phone'.to_sym] = doc.at_css('.phone').text  # NOTE: keep phone number last in list for display consistency.
   end
 
   # Returns the listing's id. If the listing doesn't have an id, it's not really a listing.
@@ -148,25 +148,25 @@ private
 
   # Returns the listing's sale price
   def self.sale_price(doc)
-    value = doc.css('.price .data').text
-    value != '' ? value : doc.css('.price .txt')[0].children[1].text
+    value = doc.at_css('.price .data')
+    value ? value.text : doc.at_css('.price .txt').children[1].text
   end
 
   # Returns the seller's address
   def self.seller_location(doc)
-    value = doc.css('.location .data').text
-    value != '' ? value : doc.css('.location .txt')[0].children[1].text
+    value = doc.at_css('.location .data')
+    value ? value.text : doc.at_css('.location .txt').children[1].text
   end
 
   # Returns the seller's name
   def self.seller_name(doc)
-    value = doc.css('.offered-by .data').text
-    value != '' ? value : doc.css('.offered-by .txt')[0].children[1].text
+    value = doc.at_css('.offered-by .data')
+    value ? value.text : doc.at_css('.offered-by .txt').children[1].text
   end
 
   # Returns the Seller's phone number
   def self.seller_phone(doc)
-    phone = doc.css('.seller-info .phone').text
+    phone = doc.at_css('.seller-info .phone').text
     phone.reverse!  # alt listing phone has css format 'direction: rtl'
     phone[0] = '('; phone[4] = ')'
     phone
@@ -185,6 +185,6 @@ private
 
   # Returns the summary listing's title
   def self.title(doc)
-    doc.css('.name').text  # '2000 JASON 25 Downeaster' (also Grady White, Grady-White, Sea Ray, ...)
+    doc.at_css('.name').text  # '2000 JASON 25 Downeaster' (also Grady White, Grady-White, Sea Ray, ...)
   end
 end
