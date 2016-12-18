@@ -15,8 +15,9 @@ class Classifieds::AutoScraper  # converts automobile classified listings into o
       sale_price = sale_price(description_pod_div)
 
       contact_div = result.at_css('.contactLinks')
-      seller_name = seller_name(contact_div)
-      seller_location = seller_location(contact_div)
+      contact_strong = contact_div.css('strong')
+      seller_name = seller_name(contact_strong)
+      seller_location = seller_location(contact_strong)
       seller_phone = seller_phone(contact_div, id, results_url_file)
 
       detail_url = detail_url(results_url, result)
@@ -88,12 +89,12 @@ private
 
   # Returns the seller's address
   def self.seller_location(doc)
-    doc.at_css('strong')[1].text.strip
+    doc[1].text.strip
   end
 
   # Returns the seller's name
   def self.seller_name(doc)
-    doc.at_css('strong')[0].text.strip
+    doc[0].text.strip
   end
 
   PHONE_PATTERN = '\(\d\d\d\) \d\d\d-\d\d\d\d'

@@ -56,17 +56,15 @@ class Classifieds::CLI  # is the command line interface for the classified app
       continue_program = false
 #    when 's'
 #      # list sellers instead of items
+    when ''
+      # display next summary rows
     else
-      item_number = user_input.to_i
-      if 0 < item_number
-        index = item_number - 1
-        if index < Classifieds::Listing.all.size
-          Classifieds::Listing.all[index].print_detail(item_number)
-        else
-          STDERR.puts Classifieds::CLI.red('Invalid selection')
-        end
-        Classifieds::CLI.prompt 'Press Enter to continue...'
+      if (item_number = user_input.to_i).between?(1, Classifieds::Listing.all.size)
+        Classifieds::Listing.all[item_number-1].print_detail(item_number)
+      else
+        STDERR.puts Classifieds::CLI.red('Invalid selection')
       end
+      Classifieds::CLI.prompt 'Press Enter to continue...'
     end
     continue_program
   end
