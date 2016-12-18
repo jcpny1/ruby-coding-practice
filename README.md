@@ -3,11 +3,11 @@
 Display classified ads from the current online edition of Newsday.com and BoatTrader.com.
 This gem was created to meet the requirements of the learn.co CLI Data Gem Project.
 
-  0.1.1  Initial release.
-  0.1.2  Improved column display formatting.
-  0.1.3  Improved use of Nokogiri methods.
-  0.1.4  Fix scrape bug introduced in 0.1.3.
-         Display invalid input message if user enters item number 0.
+  0.1.1  Initial release.  
+  0.1.2  Improved column display formatting.  
+  0.1.3  Improved use of Nokogiri methods.  
+  0.1.4  Fix scrape bug introduced in 0.1.3.  
+         Display invalid input message if user enters item number 0.  
 
 ## Installation
 
