@@ -1,6 +1,6 @@
-class Classifieds::Auto < Classifieds::Vehicle  # describes a Vehicle type of: Automobile
+class Classifieds::StringReverse
 
-  SUMMARY_COL_FORMATS = [[32,'l'], [7,'r'], [9,'r']]  # [width, justification]
+  # SUMMARY_COL_FORMATS = [[32,'l'], [7,'r'], [9,'r']]  # [width, justification]
 
   def initialize(year, make, model, mileage, price, condition, detail_link)
     super(year, make, model, price, condition, detail_link)
