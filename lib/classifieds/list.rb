@@ -7,7 +7,7 @@ class Classifieds::List
   end
 
   def insert_after(node, data)
-    new_node = Classifieds::Node.new(data)
+    new_node = Classifieds::ListNode.new(data)
     tmp_next = node.next
     node.next = new_node
     new_node.next = tmp_next
@@ -18,7 +18,7 @@ class Classifieds::List
   # Append data to list tail.
   # Return new node.
   def push(data)
-    node = Classifieds::Node.new(data)
+    node = Classifieds::ListNode.new(data)
     if @head.nil?
       @head = node
       @tail = node

@@ -41,6 +41,9 @@ class Classifieds::CLI  # is the command line interface for the classified app
         '  3. List Push',
         '  4. List Insert After',
         '  5. List Print',
+        '  6. Hash New',
+        '  7. Hash Add',
+        '  8. Hash Print',
         ' 99. Exit'
       user_input = Classifieds::CLI.prompt 'Enter your selection number: '
 
@@ -57,6 +60,12 @@ class Classifieds::CLI  # is the command line interface for the classified app
         @list.insert_after(@new_node, 'AAA')
       when 5
         @list.print
+      when 6
+        @hash = Classifieds::Hash.new
+      when 7
+        @hash.add('XXX', 'ZZZ')
+      when 8
+        @hash.print
       when 99
         continue_app = false
       else

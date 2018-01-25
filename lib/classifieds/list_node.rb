@@ -1,12 +1,11 @@
-class Classifieds::Node
-  attr_reader :data, :next
+class Classifieds::ListNode
+  attr_reader :next, :prev, :data
 
-  @prev = nil
   @next = nil
-  @data = nil
+  @prev = nil
 
   def initialize(data)
-    puts "NODE"
+    puts "NEW NODE"
     @data = data
   end
 
@@ -17,5 +16,4 @@ class Classifieds::Node
   def prev=(node)
     @prev = node
   end
-
 end
