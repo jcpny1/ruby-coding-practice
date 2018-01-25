@@ -37,30 +37,30 @@ class Classifieds::CLI  # is the command line interface for the classified app
 
       puts 'Available item types:',
         '  1. String Reverse',
-        '  2. New List',
-        '  3. Push List',
-        '  4. Print List',
+        '  2. List New',
+        '  3. List Push',
+        '  4. List Insert After',
+        '  5. List Print',
         ' 99. Exit'
       user_input = Classifieds::CLI.prompt 'Enter your selection number: '
 
       puts
+      valid_input  = true
       case user_input.to_i
       when 1
-        valid_input  = true
         Classifieds::StringReverse.new
       when 2
-        valid_input  = true
         @list = Classifieds::List.new
       when 3
-        valid_input  = true
-        @list.push('XXX')
+        @new_node = @list.push('XXX')
       when 4
-        valid_input  = true
+        @list.insert_after(@new_node, 'AAA')
+      when 5
         @list.print
       when 99
-        valid_input  = true
         continue_app = false
       else
+        valid_input  = false
         STDERR.puts Classifieds::CLI.red('Invalid selection')
       end
       puts

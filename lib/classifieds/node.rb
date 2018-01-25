@@ -1,4 +1,5 @@
 class Classifieds::Node
+  attr_reader :data, :next
 
   @prev = nil
   @next = nil
@@ -7,14 +8,6 @@ class Classifieds::Node
   def initialize(data)
     puts "NODE"
     @data = data
-  end
-
-  def data
-    @data
-  end
-
-  def next
-    @next
   end
 
   def next=(node)
