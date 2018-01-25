@@ -1,29 +1,28 @@
 class Classifieds::StringReverse
 
-  # SUMMARY_COL_FORMATS = [[32,'l'], [7,'r'], [9,'r']]  # [width, justification]
+  def initialize
+    original_string = "The dog ate my homework."
 
-  def initialize(year, make, model, mileage, price, condition, detail_link)
-    super(year, make, model, price, condition, detail_link)
-    @mileage = mileage
+    puts "STRING REVERSE"
+    puts 'Original: ' + original_string
+    puts 'Reversed: ' + string_reverse(original_string)
+
+    puts "WORD REVERSE"
+    puts word_reverse(original_string)
   end
 
-  # Creates listings from summary web page
-  def self.scrape_results_page(results_url, results_url_file, results_doc)
-    Classifieds::AutoScraper.scrape_results_page(results_url, results_url_file, results_doc, self)
+  # def string_reverse(string)
+  #   string.reverse
+  # end
+  #
+  def string_reverse(string)
+    new_string = ''
+    string.each_char { |chr| new_string = chr + new_string  }
+    new_string
   end
 
-  # Returns detail attributes and values in detail_values hash
-  def self.scrape_results_detail_page(detail_doc, item_condition, detail_values)
-    Classifieds::AutoScraper.scrape_results_detail_page(detail_doc, item_condition, detail_values)
+  def word_reverse(string)
+    string.split(' ').map{|w| string_reverse(w)}.join(' ')
   end
 
-  # Returns a summary listing data row
-  def summary_detail
-    Classifieds::Listing.format_cols([@title, @mileage, @price], SUMMARY_COL_FORMATS)
-  end
-
-  # Returns the summary listing title row
-  def self.summary_header
-    Classifieds::Listing.format_cols(['Vehicle', 'Mileage', 'Price '], SUMMARY_COL_FORMATS)
-  end
 end

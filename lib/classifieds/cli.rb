@@ -37,24 +37,33 @@ class Classifieds::CLI  # is the command line interface for the classified app
 
       puts 'Available item types:',
         '  1. String Reverse',
-        '  2. Running mean',
+        '  2. New List',
+        '  3. Push List',
+        '  4. Print List',
         ' 99. Exit'
       user_input = Classifieds::CLI.prompt 'Enter your selection number: '
 
+      puts
       case user_input.to_i
       when 1
         valid_input  = true
-        Classifieds::StringReverse
+        Classifieds::StringReverse.new
       when 2
         valid_input  = true
-        @item_class  = Classifieds::Boat
-        @summary_url = 'http://www.boattrader.com/search-results/NewOrUsed-used/Type-power/Category-all/Zip-10030/Radius-100/Price-5000,150000/Sort-Price:DESC/Page-1,50?'
+        @list = Classifieds::List.new
+      when 3
+        valid_input  = true
+        @list.push('XXX')
+      when 4
+        valid_input  = true
+        @list.print
       when 99
         valid_input  = true
         continue_app = false
       else
         STDERR.puts Classifieds::CLI.red('Invalid selection')
       end
+      puts
     end while valid_input == false
     continue_app
   end
