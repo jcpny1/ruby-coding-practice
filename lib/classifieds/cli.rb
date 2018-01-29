@@ -44,7 +44,10 @@ class Classifieds::CLI  # is the command line interface for the classified app
         '  6. Hash New',
         '  7. Hash Add',
         '  8. Hash Print',
-        '  9. Two Sum',
+        '  9. Two Sum Run',
+        ' 10. Two Sum New',
+        ' 11. Two Sum Add',
+        ' 12. Two Sum Find',
         ' 99. Exit'
       user_input = Classifieds::CLI.prompt 'Enter your selection number: '
 
@@ -72,7 +75,17 @@ class Classifieds::CLI  # is the command line interface for the classified app
       when 8
         @hash.print
       when 9
-        Classifieds::TwoSum.new
+        Classifieds::TwoSum.new.run
+      when 10
+        @two_sum = Classifieds::TwoSum.new
+      when 11
+        puts 'Enter value:'
+        value = gets.chomp.to_i
+        @two_sum.add(value)
+      when 12
+        puts 'Enter value:'
+        value = gets.chomp.to_i
+        @two_sum.find(value)
       when 99
         continue_app = false
       else
