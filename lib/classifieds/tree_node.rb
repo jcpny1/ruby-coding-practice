@@ -9,6 +9,12 @@ class Classifieds::TreeNode
     @right  = nil
   end
 
+  def depth
+    ldepth = @left.nil?  ? 0 : @left.depth
+    rdepth = @right.nil? ? 0 : @right.depth
+    ldepth > rdepth ? ldepth + 1 : rdepth + 1
+  end
+
   def left=(node)
     @left = node
   end

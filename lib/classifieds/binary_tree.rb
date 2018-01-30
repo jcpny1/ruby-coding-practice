@@ -12,6 +12,10 @@ class Classifieds::BinaryTree
     end
   end
 
+  def depth
+    @head.nil? ? 0 : @head.depth
+  end
+
   def print
     @head.print_all
   end
@@ -22,12 +26,14 @@ private
     if data < node.data[0]
       if node.left == nil
         node.left = Classifieds::TreeNode.new(node, data)
+puts 'left'
       else
         add_data(node.left, data)
       end
     elsif data > node.data[0]
       if node.right == nil
         node.right = Classifieds::TreeNode.new(node, data)
+puts 'right'
       else
         add_data(node.right, data)
       end

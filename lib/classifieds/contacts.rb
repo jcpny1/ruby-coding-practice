@@ -9,12 +9,13 @@ class Classifieds::Contacts
     puts "CONTACTS"
     tree = Classifieds::BinaryTree.new
     ctr = 0
-    CSV.foreach("contacts.csv") do |row|
+    CSV.foreach("csort.csv") do |row|
       tree.add(row[1]) if !row[1].nil?
       ctr += 1
     end
     puts Dir.pwd
     puts ctr
     tree.print
+    puts "Depth: #{tree.depth}"
   end
 end
