@@ -1,7 +1,9 @@
 class Classifieds::ArraySeq
   # find the longest sequence.
 
-  ARRAY=[100, 4, 200, 1, 3, 2]
+  # ARRAY=[100, 4, 200, 1, 3, 2]
+  # ARRAY=[4, 0, 1, 2, 16, 12, 13, 14, 15, 5, 6, 7, 8, 9, 10]
+  ARRAY=[]
 
   def initialize
     puts 'ARRAY SEQ'
