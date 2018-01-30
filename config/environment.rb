@@ -1,5 +1,6 @@
 require 'pry'
 require_relative '../lib/classifieds/version.rb'
+require_relative '../lib/classifieds/array_seq.rb'
 require_relative '../lib/classifieds/array_shift.rb'
 require_relative '../lib/classifieds/binary_tree.rb'
 require_relative '../lib/classifieds/cli.rb'

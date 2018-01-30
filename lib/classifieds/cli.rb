@@ -50,6 +50,7 @@ class Classifieds::CLI  # is the command line interface for the classified app
         ' 12. Two Sum Find',
         ' 13. Contacts',
         ' 14. Array Shift',
+        ' 15. Array Seq',
         ' 99. Exit'
       user_input = Classifieds::CLI.prompt 'Enter your selection number: '
 
@@ -92,6 +93,8 @@ class Classifieds::CLI  # is the command line interface for the classified app
         Classifieds::Contacts.new
       when 14
         Classifieds::ArrayShift.new
+      when 15
+        Classifieds::ArraySeq.new
       when 99
         continue_app = false
       else
