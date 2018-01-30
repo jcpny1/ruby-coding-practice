@@ -1,11 +1,12 @@
 class Classifieds::StringReverse
 
   def initialize
-    original_string = "the dog ate my homework"
+    original_string = "the dog ate my homeworks"
 
     puts "STRING REVERSE"
-    puts 'Original: ' + original_string
-    puts 'Reversed: ' + string_reverse(original_string)
+    puts 'Original:   ' + original_string
+    puts 'Reversed:   ' + string_reverse(original_string)
+    puts 'Reversed 2: ' + string_reverse_2(original_string)
 
     puts "WORD REVERSE"
     puts word_reverse(original_string)
@@ -15,11 +16,11 @@ class Classifieds::StringReverse
     puts word_reverse_3(original_string)
   end
 
-  # def string_reverse(string)
-  #   string.reverse
-  # end
-  #
   def string_reverse(string)
+    string.reverse
+  end
+
+  def string_reverse_2(string)
     new_string = ''
     string.each_char {|chr| new_string = chr + new_string}
     new_string
