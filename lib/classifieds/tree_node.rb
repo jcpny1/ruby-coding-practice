@@ -1,21 +1,26 @@
-class Classifieds::ListNode
-  attr_reader :parent, :left, :right, :data
+class Classifieds::TreeNode
+  attr_reader :data, :parent, :left, :right
 
-  @parent = nil
-  @left   = nil
-  @right  = nil
-
-  def initialize(data)
+  def initialize(node, data)
     puts "NEW NODE"
-    @data = data
-  end
-
-  def parent=(node)
+    @data   = [data]
     @parent = node
+    @left   = nil
+    @right  = nil
   end
 
   def left=(node)
     @left = node
+  end
+
+  def print
+    puts 'Node data: ' + @data[0]
+  end
+
+  def print_all
+    print
+    @left.print_all  if !left.nil?
+    @right.print_all if !right.nil?
   end
 
   def right=(node)

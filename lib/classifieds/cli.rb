@@ -48,6 +48,7 @@ class Classifieds::CLI  # is the command line interface for the classified app
         ' 10. Two Sum New',
         ' 11. Two Sum Add',
         ' 12. Two Sum Find',
+        ' 13. Contacts',
         ' 99. Exit'
       user_input = Classifieds::CLI.prompt 'Enter your selection number: '
 
@@ -86,6 +87,8 @@ class Classifieds::CLI  # is the command line interface for the classified app
         puts 'Enter value:'
         value = gets.chomp.to_i
         @two_sum.find(value)
+      when 13
+        Classifieds::Contacts.new
       when 99
         continue_app = false
       else
